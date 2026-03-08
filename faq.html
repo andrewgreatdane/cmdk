@@ -1,0 +1,447 @@
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CmdK | FAQ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap">
+  <style>
+    .font-geist { font-family: 'Geist', sans-serif !important; }
+    .font-space-grotesk { font-family: 'Space Grotesk', sans-serif !important; }
+
+    body { font-family: 'Inter', sans-serif; cursor: default; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #09090b; }
+    ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+    /* Grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.028;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+    }
+
+    /* Scroll reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.08s; }
+    .reveal-delay-2 { transition-delay: 0.16s; }
+
+    /* Hero animations */
+    .hero-badge { animation: fadeSlideDown 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both; }
+    .hero-h1    { animation: fadeSlideDown 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both; }
+    .hero-sub   { animation: fadeSlideDown 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both; }
+    @keyframes fadeSlideDown {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Nav underline */
+    nav a:not(.cta-btn) { position: relative; }
+    nav a:not(.cta-btn)::after {
+      content: ''; position: absolute; bottom: -2px; left: 0;
+      width: 0; height: 1px; background: rgba(255,255,255,0.4);
+      transition: width 0.3s ease;
+    }
+    nav a:not(.cta-btn):hover::after { width: 100%; }
+
+    /* Accordion item */
+    .faq-item {
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      transition: border-color 0.3s ease;
+    }
+    .faq-item:first-child { border-top: 1px solid rgba(255,255,255,0.06); }
+    .faq-item.open { border-bottom-color: rgba(255,255,255,0.08); }
+
+    .faq-trigger {
+      width: 100%;
+      text-align: left;
+      padding: 1.5rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: inherit;
+      transition: color 0.2s ease;
+    }
+    .faq-trigger:hover .faq-question { color: rgba(255,255,255,0.95); }
+
+    .faq-question {
+      font-size: 1rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.75);
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: -0.01em;
+      line-height: 1.4;
+      transition: color 0.2s ease;
+    }
+    .faq-item.open .faq-question { color: rgba(255,255,255,0.95); }
+
+    /* Plus/minus icon */
+    .faq-icon {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.3s ease, background 0.3s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      color: rgba(255,255,255,0.4);
+    }
+    .faq-item.open .faq-icon {
+      border-color: rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.04);
+      transform: rotate(45deg);
+      color: rgba(255,255,255,0.8);
+    }
+
+    /* Answer panel */
+    .faq-body {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .faq-body-inner {
+      padding-bottom: 1.5rem;
+      padding-right: 3rem;
+    }
+    .faq-answer {
+      font-size: 0.9rem;
+      line-height: 1.75;
+      color: rgba(161,153,147,0.9);
+      font-family: 'Geist', sans-serif;
+    }
+
+    /* Number label */
+    .faq-number {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.15);
+      font-family: 'Geist', sans-serif;
+      letter-spacing: 0.08em;
+      min-width: 2rem;
+      padding-top: 2px;
+    }
+
+    /* Highlighted answer — for the punchy one-liners */
+    .faq-answer em {
+      font-style: normal;
+      color: rgba(255,255,255,0.6);
+    }
+  </style>
+</head>
+
+<body class="bg-zinc-950 text-zinc-400 antialiased selection:bg-zinc-800 selection:text-white min-h-screen flex flex-col">
+
+  <!-- Navigation -->
+  <nav class="sticky top-0 z-50 w-full border-b border-white/[0.05] bg-stone-950/80 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <a href="index.html" class="text-base font-medium tracking-tighter text-white font-geist">CmdK</a>
+      <div class="flex items-center gap-6">
+        <div class="hidden md:flex items-center gap-6">
+          <a href="faq.html" class="text-sm text-white font-geist">FAQ</a>
+          <a href="team.html" class="text-sm hover:text-stone-200 transition-colors font-geist">Team</a>
+          <a href="packages.html" class="text-sm hover:text-stone-200 transition-colors font-geist">Packages</a>
+        </div>
+        <a href="index.html#consultation" class="cta-btn text-xs md:text-sm font-medium text-stone-950 bg-white px-4 py-2 rounded hover:bg-stone-200 transition-colors font-geist">
+          Schedule Consultation
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="flex-grow">
+
+    <!-- Page Header -->
+    <section class="pt-24 pb-16 md:pt-36 md:pb-20 px-6 relative overflow-hidden">
+      <div class="absolute inset-0 bg-zinc-950 -z-10">
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:32px_32px]" style="-webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 100%); mask-image: radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 100%);"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-transparent via-zinc-950/90 to-zinc-950"></div>
+      </div>
+      <div class="max-w-3xl mx-auto">
+        <div class="hero-badge inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 mb-8 backdrop-blur-sm">
+          <div class="w-1.5 h-1.5 rounded-full bg-stone-400 animate-pulse"></div>
+          <span class="text-xs font-medium text-stone-300 font-geist tracking-wide">Questions & Answers</span>
+        </div>
+        <h1 class="hero-h1 text-4xl md:text-5xl font-semibold text-white tracking-tight font-space-grotesk mb-5">
+          Things people ask.<br>
+          <span style="background: linear-gradient(135deg, #ffffff 30%, rgba(255,255,255,0.45)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Answered plainly.</span>
+        </h1>
+        <p class="hero-sub text-base text-stone-400 max-w-xl leading-relaxed font-geist">
+          If your question isn't here, it's probably best answered in a conversation.
+        </p>
+      </div>
+    </section>
+
+    <!-- FAQ Accordion -->
+    <section class="pb-24 md:pb-32 px-6 border-t border-white/[0.05]">
+      <div class="max-w-3xl mx-auto pt-16">
+
+        <div class="faq-list">
+
+          <!-- Q1 -->
+          <div class="faq-item reveal">
+            <button class="faq-trigger" onclick="toggleFaq(this)">
+              <div class="flex items-start gap-5">
+                <span class="faq-number">01</span>
+                <span class="faq-question">How much does a CmdK system cost?</span>
+              </div>
+              <span class="faq-icon">
+                <iconify-icon icon="solar:add-linear" style="stroke-width:1.5; font-size:14px;"></iconify-icon>
+              </span>
+            </button>
+            <div class="faq-body">
+              <div class="faq-body-inner pl-9">
+                <p class="faq-answer">Individual and couple packages start at $10,000. Family packages start at $25,000. If your first instinct is that this sounds expensive, a CmdK system probably isn't the right fit — <em>and that's perfectly fine.</em></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Q2 -->
+          <div class="faq-item reveal reveal-delay-1">
+            <button class="faq-trigger" onclick="toggleFaq(this)">
+              <div class="flex items-start gap-5">
+                <span class="faq-number">02</span>
+                <span class="faq-question">Can't I just buy a kit on Amazon?</span>
+              </div>
+              <span class="faq-icon">
+                <iconify-icon icon="solar:add-linear" style="stroke-width:1.5; font-size:14px;"></iconify-icon>
+              </span>
+            </button>
+            <div class="faq-body">
+              <div class="faq-body-inner pl-9">
+                <p class="faq-answer">Go ahead. When a true catastrophe happens, you'll be running around with safety scissors and gauze <em>like everyone else.</em></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Q3 -->
+          <div class="faq-item reveal">
+            <button class="faq-trigger" onclick="toggleFaq(this)">
+              <div class="flex items-start gap-5">
+                <span class="faq-number">03</span>
+                <span class="faq-question">How long does the process take?</span>
+              </div>
+              <span class="faq-icon">
+                <iconify-icon icon="solar:add-linear" style="stroke-width:1.5; font-size:14px;"></iconify-icon>
+              </span>
+            </button>
+            <div class="faq-body">
+              <div class="faq-body-inner pl-9">
+                <p class="faq-answer">From initial consultation to delivery, most engagements are completed within three to four weeks. We don't rush the assessment phase — understanding how your family actually lives takes time, and that precision is exactly what you're paying for.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Q4 -->
+          <div class="faq-item reveal reveal-delay-1">
+            <button class="faq-trigger" onclick="toggleFaq(this)">
+              <div class="flex items-start gap-5">
+                <span class="faq-number">04</span>
+                <span class="faq-question">Do I need to know anything about survival before working with you?</span>
+              </div>
+              <span class="faq-icon">
+                <iconify-icon icon="solar:add-linear" style="stroke-width:1.5; font-size:14px;"></iconify-icon>
+              </span>
+            </button>
+            <div class="faq-body">
+              <div class="faq-body-inner pl-9">
+                <p class="faq-answer">No. In fact, we prefer clients who don't — <em>there's less to unlearn.</em> Our consultants handle the expertise. Your job is to show up to the consultation and answer questions honestly about your life.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Q5 -->
+          <div class="faq-item reveal">
+            <button class="faq-trigger" onclick="toggleFaq(this)">
+              <div class="flex items-start gap-5">
+                <span class="faq-number">05</span>
+                <span class="faq-question">What makes your consultants qualified?</span>
+              </div>
+              <span class="faq-icon">
+                <iconify-icon icon="solar:add-linear" style="stroke-width:1.5; font-size:14px;"></iconify-icon>
+              </span>
+            </button>
+            <div class="faq-body">
+              <div class="faq-body-inner pl-9">
+                <p class="faq-answer">Decades of active service across multiple operational theatres. The kind of experience that isn't earned in a classroom or summarized on a résumé. <em>We'll leave it at that.</em></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Q6 -->
+          <div class="faq-item reveal reveal-delay-1">
+            <button class="faq-trigger" onclick="toggleFaq(this)">
+              <div class="flex items-start gap-5">
+                <span class="faq-number">06</span>
+                <span class="faq-question">Is this just for doomsday preppers?</span>
+              </div>
+              <span class="faq-icon">
+                <iconify-icon icon="solar:add-linear" style="stroke-width:1.5; font-size:14px;"></iconify-icon>
+              </span>
+            </button>
+            <div class="faq-body">
+              <div class="faq-body-inner pl-9">
+                <p class="faq-answer">Our clients are executives, physicians, founders, and families who take risk management seriously in every other area of their lives. They simply decided to extend that same rigor to physical preparedness. We find the "doomsday prepper" framing more revealing about the person using it than the people it's meant to describe.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Q7 -->
+          <div class="faq-item reveal">
+            <button class="faq-trigger" onclick="toggleFaq(this)">
+              <div class="flex items-start gap-5">
+                <span class="faq-number">07</span>
+                <span class="faq-question">Do you offer payment plans?</span>
+              </div>
+              <span class="faq-icon">
+                <iconify-icon icon="solar:add-linear" style="stroke-width:1.5; font-size:14px;"></iconify-icon>
+              </span>
+            </button>
+            <div class="faq-body">
+              <div class="faq-body-inner pl-9">
+                <p class="faq-answer">No. <em>Our clients typically don't require them.</em></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Q8 -->
+          <div class="faq-item reveal reveal-delay-1">
+            <button class="faq-trigger" onclick="toggleFaq(this)">
+              <div class="flex items-start gap-5">
+                <span class="faq-number">08</span>
+                <span class="faq-question">What if my situation changes after the kit is delivered?</span>
+              </div>
+              <span class="faq-icon">
+                <iconify-icon icon="solar:add-linear" style="stroke-width:1.5; font-size:14px;"></iconify-icon>
+              </span>
+            </button>
+            <div class="faq-body">
+              <div class="faq-body-inner pl-9">
+                <p class="faq-answer">New home, new city, new family member — life changes and your system should too. Annual membership includes a full refresh. For significant life changes between refreshes, reach out and we'll assess what needs updating.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Q9 -->
+          <div class="faq-item reveal">
+            <button class="faq-trigger" onclick="toggleFaq(this)">
+              <div class="flex items-start gap-5">
+                <span class="faq-number">09</span>
+                <span class="faq-question">Is this confidential?</span>
+              </div>
+              <span class="faq-icon">
+                <iconify-icon icon="solar:add-linear" style="stroke-width:1.5; font-size:14px;"></iconify-icon>
+              </span>
+            </button>
+            <div class="faq-body">
+              <div class="faq-body-inner pl-9">
+                <p class="faq-answer">Entirely. We don't discuss client relationships, share case studies, or use your engagement for marketing purposes. <em>Discretion isn't a feature we offer — it's a baseline expectation of how we operate.</em></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Q10 -->
+          <div class="faq-item reveal reveal-delay-1">
+            <button class="faq-trigger" onclick="toggleFaq(this)">
+              <div class="flex items-start gap-5">
+                <span class="faq-number">10</span>
+                <span class="faq-question">How do I get started?</span>
+              </div>
+              <span class="faq-icon">
+                <iconify-icon icon="solar:add-linear" style="stroke-width:1.5; font-size:14px;"></iconify-icon>
+              </span>
+            </button>
+            <div class="faq-body">
+              <div class="faq-body-inner pl-9">
+                <p class="faq-answer">Schedule a consultation. We'll ask you some questions. If it's a good fit, we'll tell you. <em>If it isn't, we'll tell you that too.</em></p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bottom CTA -->
+        <div class="mt-20 pt-12 border-t border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <p class="text-sm text-stone-500 font-geist max-w-sm leading-relaxed">
+            Still have questions? They're best answered in person.
+          </p>
+          <a href="index.html#consultation" class="inline-flex items-center gap-2 text-sm font-medium text-stone-950 bg-white px-6 py-3 rounded hover:bg-stone-100 transition-colors font-geist whitespace-nowrap">
+            Schedule a Consultation
+            <iconify-icon icon="solar:arrow-right-linear" class="text-lg" style="stroke-width: 1.5;"></iconify-icon>
+          </a>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/[0.05] py-12 px-6 bg-zinc-950">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <span class="text-base font-medium tracking-tighter text-stone-300 font-geist">CmdK</span>
+      <div class="flex items-center gap-6 text-xs text-stone-500">
+        <a href="#" class="hover:text-stone-300 transition-colors font-geist">Privacy</a>
+        <a href="#" class="hover:text-stone-300 transition-colors font-geist">Terms</a>
+        <a href="#" class="hover:text-stone-300 transition-colors font-geist">Contact</a>
+      </div>
+      <div class="text-xs text-stone-600 font-geist">© 2026 CmdK. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script>
+    // Accordion
+    function toggleFaq(trigger) {
+      const item = trigger.closest('.faq-item');
+      const body = item.querySelector('.faq-body');
+      const isOpen = item.classList.contains('open');
+
+      // Close all
+      document.querySelectorAll('.faq-item.open').forEach(openItem => {
+        openItem.classList.remove('open');
+        openItem.querySelector('.faq-body').style.maxHeight = '0';
+      });
+
+      // Open clicked if it was closed
+      if (!isOpen) {
+        item.classList.add('open');
+        body.style.maxHeight = body.scrollHeight + 'px';
+      }
+    }
+
+    // Scroll reveal
+    const revealEls = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+    revealEls.forEach(el => observer.observe(el));
+  </script>
+
+</body></html>
