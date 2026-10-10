@@ -108,4 +108,9 @@ alter table public.admins enable row level security;
 drop policy if exists admin_read on public.admins;
 create policy admin_read on public.admins for select to authenticated using ((select public.is_admin()));
 
-revoke execute on function public.is_admin() from anon;
+revoke execute on function public.is_admin() from public, anon;
+grant execute on function public.is_admin() to authenticated;
+
+-- Admin allowlist (add Alex and Mr. Grey here when ready)
+insert into public.admins (email, name) values ('andrew@unhingedventures.com', 'Andrew') on conflict do nothing;
+insert into public.settings (key, value) values ('usd_cad','1.37'), ('markup','1.00') on conflict do nothing;
