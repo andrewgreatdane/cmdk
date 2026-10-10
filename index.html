@@ -97,6 +97,23 @@ The complete PNG is embedded below for single-file delivery. -->
     .build-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; }
     .build-card { position:relative; border:1px solid var(--line); padding:28px; min-width:0; overflow:hidden; background:linear-gradient(140deg,rgba(255,255,255,.025),transparent 60%); transition:border-color .3s,background .3s; }
     .build-card:hover { border-color:#68727b; background-color:rgba(255,255,255,.015); }
+    .scenario-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; }
+    .scenario-card { position:relative; display:flex; flex-direction:column; min-width:0; border:1px solid var(--line); background:#0d0f11; overflow:hidden; transition:border-color .3s; }
+    .scenario-card:hover { border-color:#68727b; }
+    .scenario-frame { position:relative; aspect-ratio:3/2; overflow:hidden; background:#08090a; border-bottom:1px solid var(--line); }
+    .scenario-frame img { display:block; width:100%; height:100%; object-fit:cover; filter:grayscale(1); mix-blend-mode:lighten; transform:scale(1.03); transition:transform 1.2s cubic-bezier(.16,1,.3,1); }
+    .scenario-card:hover .scenario-frame img { transform:scale(1.06); }
+    .scenario-frame:after { content:''; position:absolute; inset:0; pointer-events:none; box-shadow:inset 0 0 28px 8px #08090a; }
+    .scenario-body { padding:24px 28px 28px; }
+    .scenario-top { display:flex; justify-content:space-between; align-items:center; color:#6c747b; margin-bottom:20px; }
+    .scenario-card h3 { font-family:'Space Grotesk',sans-serif; font-size:22px; letter-spacing:-.045em; margin-bottom:14px; }
+    .scenario-card p { color:#9fa6ad; font-size:13px; line-height:1.85; }
+    .scenario-timeline { list-style:none; margin:20px 0 0; padding:0; border-top:1px solid var(--line); }
+    .scenario-timeline li { display:grid; grid-template-columns:56px 1fr; gap:14px; padding:11px 0; border-bottom:1px solid var(--line); font-size:12px; line-height:1.6; color:#aab0b6; }
+    .scenario-timeline li span:first-child { font-family:'Space Grotesk',sans-serif; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:#6c747c; padding-top:3px; }
+    .scenario-note { max-width:560px; margin-top:40px; color:#8f969c; font-size:13px; line-height:1.85; }
+    @media(max-width:900px) { .scenario-grid { grid-template-columns:1fr; gap:16px; } .scenario-body { padding:22px; } }
+    @media(max-width:639px) { .scenario-timeline li { grid-template-columns:48px 1fr; gap:10px; } .scenario-note { margin-top:28px; } }
     .build-card-top { display:flex; justify-content:space-between; align-items:center; color:#6c747b; margin-bottom:32px; }
     .build-symbol { width:60px; height:40px; color:#bbc3ca; }
     .build-card h3 { font-family:'Space Grotesk',sans-serif; font-size:24px; letter-spacing:-.045em; margin-bottom:16px; }
@@ -172,7 +189,7 @@ The complete PNG is embedded below for single-file delivery. -->
     @media(min-width:1600px) { .hero-grid { padding-block:88px; } }
     @media(max-width:1100px) { .container { padding-inline:32px; } .hero-grid { gap:16px; } .intake-grid { gap:48px; } .price-card { grid-template-columns:1fr; } .price-card .price-details { grid-column:auto; } .membership { gap:32px; } }
     @media(max-width:900px) { .hero-grid { grid-template-columns:1fr; gap:48px; padding-block:48px; } .hero-copy { display:grid; grid-template-columns:1fr 1fr; gap:0 40px; } .hero-kicker,.hero-title { grid-column:1; } .hero-title { grid-row:2/4; font-size:12vw; } .hero-intro { grid-column:2; grid-row:2; margin:0; align-self:end; } .hero-cta { grid-column:2; grid-row:3; } .hero-visual { max-width:700px; width:100%; margin-inline:auto; } .build-card { padding:22px; } .process-grid { grid-template-columns:repeat(2,minmax(0,1fr)); row-gap:36px; } .process-step:nth-child(3) { border-left:0; padding-left:0; } .membership { padding:36px; } .intake-grid { grid-template-columns:.65fr 1.35fr; gap:32px; } .intake-form-wrap { padding:24px; } }
-    @media(max-width:639px) { .container { padding-inline:24px; } .header-inner { height:72px; } section[id],article[id] { scroll-margin-top:72px; } .nav-links { gap:20px; } .nav-links small,.nav-process { display:none; } .nav-links a { font-size:10px; } .brand-name { font-size:8px; } .brand-emblem { width:30px; height:32px; font-size:23px; } .brand { gap:9px; } .hero-grid { padding-block:40px 36px; gap:36px; } .hero-copy { display:block; } .hero-kicker { font-size:9px; margin-bottom:22px; } .hero-title { font-size:20.5vw; } .hero-title span { display:inline; } .hero-title .outline { display:block; } .hero-intro { margin-top:24px; font-size:13px; max-width:320px; } .hero-cta { margin-top:24px; } .hero-visual { padding-top:0; } .visual-heading { font-size:9px; } .scene-frame { margin-inline:-12px; width:calc(100% + 24px); } .scope-pin span { font-size:8px; padding:4px; } .scope-pin { gap:5px; } .scope-pin:before { width:4px; height:4px; } .scope-switch { padding:15px 10px; gap:7px; font-size:11px; } .scope-description { grid-template-columns:45px 1fr; gap:12px; min-height:85px; } .scope-description .eyebrow { font-size:9px; } #scope-copy { font-size:11px; } .scope-caption { font-size:8px; }
+    @media(max-width:639px) { .container { padding-inline:24px; } .header-inner { height:72px; } section[id],article[id] { scroll-margin-top:72px; } .nav-links { gap:20px; } .nav-links small,.nav-process,.nav-scenarios { display:none; } .nav-links a { font-size:10px; } .brand-name { font-size:8px; } .brand-emblem { width:30px; height:32px; font-size:23px; } .brand { gap:9px; } .hero-grid { padding-block:40px 36px; gap:36px; } .hero-copy { display:block; } .hero-kicker { font-size:9px; margin-bottom:22px; } .hero-title { font-size:20.5vw; } .hero-title span { display:inline; } .hero-title .outline { display:block; } .hero-intro { margin-top:24px; font-size:13px; max-width:320px; } .hero-cta { margin-top:24px; } .hero-visual { padding-top:0; } .visual-heading { font-size:9px; } .scene-frame { margin-inline:-12px; width:calc(100% + 24px); } .scope-pin span { font-size:8px; padding:4px; } .scope-pin { gap:5px; } .scope-pin:before { width:4px; height:4px; } .scope-switch { padding:15px 10px; gap:7px; font-size:11px; } .scope-description { grid-template-columns:45px 1fr; gap:12px; min-height:85px; } .scope-description .eyebrow { font-size:9px; } #scope-copy { font-size:11px; } .scope-caption { font-size:8px; }
       .section { padding-block:64px; } .section-header { display:block; margin-bottom:32px; } .section-label { margin-bottom:18px; padding:0; } .section-title { font-size:30px; } .build-grid { grid-template-columns:1fr; gap:16px; } .build-card { padding:24px; } .build-card-top { margin-bottom:24px; } .build-card h3 { font-size:24px; } .build-card p { font-size:13px; } .process-grid { grid-template-columns:1fr; row-gap:0; } .process-step,.process-step + .process-step { padding:24px 0; border-left:0; border-bottom:1px solid var(--line); display:grid; grid-template-columns:48px 1fr; gap:0 20px; } .process-number { grid-row:1/3; font-size:36px; margin:0; } .process-step h3 { margin-bottom:8px; } .process-step p { grid-column:2; } .build-pricing { grid-template-columns:1fr; gap:16px; } .price-card { padding:24px; gap:20px; } .price-card .price { font-size:42px; } .membership { grid-template-columns:1fr; padding:28px 24px; gap:36px; margin-top:16px; } .membership h3 { font-size:44px; } .membership-copy { font-size:14px; } .membership .eyebrow { margin-bottom:22px; } .member-price .price { font-size:56px; } .member-benefits { margin-top:24px; } .intake-grid { grid-template-columns:1fr; gap:32px; } .intake-heading { position:static; } .intake-heading h2 { font-size:64px; margin:24px 0; } .intake-heading h2 br { display:none; } .intake-heading p { max-width:none; font-size:13px; } .intake-contact { margin-top:24px; } .intake-form-wrap { padding:24px; } .field-grid { grid-template-columns:1fr; gap:24px; } .field-input { font-size:16px; } .field-label { font-size:12px; } .footer-row { align-items:flex-start; flex-direction:column; gap:24px; } .footer-wordmark { font-size:10.4vw; margin-top:32px; }
     }
     @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*:before,*:after { animation:none!important; transition:none!important; } .reveal-ready .reveal { opacity:1; transform:none; } .hero-scene { transform:none; } }
@@ -184,8 +201,9 @@ The complete PNG is embedded below for single-file delivery. -->
       <a href="#hero" class="brand" aria-label="Resilience Systems home"><span class="brand-emblem" aria-hidden="true">R<span>/</span></span><span class="brand-name">Resilience<br>Systems</span></a>
       <div class="nav-links">
         <a href="#included"><small>01</small>The system</a>
-        <a href="#process" class="nav-process"><small>02</small>Process</a>
-        <a href="#investment"><small>03</small>Membership</a>
+        <a href="#scenarios" class="nav-scenarios"><small>02</small>Scenarios</a>
+        <a href="#process" class="nav-process"><small>03</small>Process</a>
+        <a href="#investment"><small>04</small>Membership</a>
       </div>
     </nav>
   </header>
@@ -229,9 +247,69 @@ The complete PNG is embedded below for single-file delivery. -->
       </div>
     </section>
 
+    <section id="scenarios" class="section" aria-labelledby="scenarios-title">
+      <div class="container">
+        <div class="section-header reveal"><p class="section-label eyebrow"><span class="index">02</span> Scenarios</p><h2 id="scenarios-title" class="section-title">What could go wrong.</h2></div>
+
+        <div class="scenario-grid">
+
+          <article class="scenario-card reveal">
+            <div class="scenario-frame">
+              <img src="assets/scenario-earthquake.webp" alt="Architectural model of a home on fractured ground" loading="lazy" width="1024" height="688">
+            </div>
+            <div class="scenario-body">
+              <div class="scenario-top eyebrow"><span>01 / Natural disaster</span><span>M7+</span></div>
+              <h3>Earthquake</h3>
+              <p>A major quake on the Cascadia or Georgia Strait faults. Bridges and tunnels are closed for inspection within minutes. The family is split between home, school, and office, and no one can get to anyone else.</p>
+              <ul class="scenario-timeline">
+                <li><span>0–1 hr</span><span>Cell networks saturate. Calls fail; texts queue. Power is out across the region.</span></li>
+                <li><span>1–24 hr</span><span>Water pressure drops or stops. Fuel stations close. Roads become one-way out.</span></li>
+                <li><span>Day 2+</span><span>Stores are empty. Emergency services triage by severity, not by address. You are on your own for a week or more.</span></li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="scenario-card reveal reveal-delay-1">
+            <div class="scenario-frame">
+              <img src="assets/scenario-grid.webp" alt="Architectural model of a darkened city block with severed lines" loading="lazy" width="1024" height="688">
+            </div>
+            <div class="scenario-body">
+              <div class="scenario-top eyebrow"><span>02 / Infrastructure</span><span>Grid</span></div>
+              <h3>Attack on infrastructure</h3>
+              <p>An automated attack on utilities and telecoms. Nothing is physically damaged, and that is the problem: there is no visible event, no timeline, and no one who can say when it ends.</p>
+              <ul class="scenario-timeline">
+                <li><span>0–1 hr</span><span>Power, internet, and mobile data fail together. Payment terminals, ATMs, and fuel pumps stop.</span></li>
+                <li><span>1–24 hr</span><span>Traffic signals and transit go dark. Water treatment runs on backup. Building access systems lock or fail open.</span></li>
+                <li><span>Day 2+</span><span>Cash runs out. Refrigeration fails. Restoration is measured in days to weeks with no public estimate.</span></li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="scenario-card reveal reveal-delay-2">
+            <div class="scenario-frame">
+              <img src="assets/scenario-attack.webp" alt="Architectural model of a gridlocked downtown interchange sealed by barriers" loading="lazy" width="1024" height="688">
+            </div>
+            <div class="scenario-body">
+              <div class="scenario-top eyebrow"><span>03 / Security</span><span>Lockdown</span></div>
+              <h3>Terrorist attack</h3>
+              <p>A coordinated attack downtown. The city core is sealed. If a family member works, studies, or is in transit there, they are inside the cordon with no way out and no way to reach you.</p>
+              <ul class="scenario-timeline">
+                <li><span>0–1 hr</span><span>Lockdown. Transit halts, bridges close, cell networks are overloaded by everyone calling at once.</span></li>
+                <li><span>1–24 hr</span><span>Cordons expand. Movement is restricted. Information is fragmented and mostly wrong.</span></li>
+                <li><span>Day 2+</span><span>Secondary threats keep areas closed. Reuniting the family depends entirely on a plan made in advance.</span></li>
+              </ul>
+            </div>
+          </article>
+
+        </div>
+
+        <p class="scenario-note reveal">In each case the first failure is the same: communication, then movement, then supply. The system we build covers all three.</p>
+      </div>
+    </section>
+
     <section id="process" class="section" aria-labelledby="process-title">
       <div class="container">
-        <div class="section-header reveal"><p class="section-label eyebrow"><span class="index">02</span> The engagement</p><h2 id="process-title" class="section-title">How it works.</h2></div>
+        <div class="section-header reveal"><p class="section-label eyebrow"><span class="index">03</span> The engagement</p><h2 id="process-title" class="section-title">How it works.</h2></div>
         <ol class="process-grid">
           <li class="process-step reveal"><span class="process-number" aria-hidden="true">01</span><h3>Intake</h3><p>Tell us who you want protected, where you live, and where you work.</p></li>
           <li class="process-step reveal reveal-delay-1"><span class="process-number" aria-hidden="true">02</span><h3>Assessment</h3><p>We research your situation and review your household, locations, and routines.</p></li>
@@ -243,7 +321,7 @@ The complete PNG is embedded below for single-file delivery. -->
 
     <section id="investment" class="section" aria-labelledby="pricing-title">
       <div class="container">
-        <div class="section-header reveal"><p class="section-label eyebrow"><span class="index">03</span> Build + membership</p><h2 id="pricing-title" class="section-title">Pricing.</h2></div>
+        <div class="section-header reveal"><p class="section-label eyebrow"><span class="index">04</span> Build + membership</p><h2 id="pricing-title" class="section-title">Pricing.</h2></div>
         <div class="build-pricing">
           <article class="price-card reveal"><h3>Family system</h3><div class="price">$20,000</div><div class="price-details"><p><strong>A family of four.</strong> Emergency systems across home, office, and vehicle, plus family training.</p></div></article>
           <article class="price-card reveal reveal-delay-1"><h3>Individual / couple</h3><div class="price">$20,000</div><div class="price-details"><p><strong>$10,000 gear + $10,000 build and training.</strong><br>Includes a two-year maintenance contract.</p></div></article>
@@ -257,7 +335,7 @@ The complete PNG is embedded below for single-file delivery. -->
 
     <section id="consultation" class="section" aria-labelledby="intake-title">
       <div class="container intake-grid">
-        <div class="intake-heading"><p class="section-label eyebrow"><span class="index">04</span> Intake</p><h2 id="intake-title">Begin<br>intake.</h2><p>We’ll be in touch within 48 hours of receiving your intake.</p><div class="intake-contact"><span class="eyebrow">Direct contact</span><a href="mailto:andrew@unhingedventures.com">andrew@unhingedventures.com</a></div></div>
+        <div class="intake-heading"><p class="section-label eyebrow"><span class="index">05</span> Intake</p><h2 id="intake-title">Begin<br>intake.</h2><p>We’ll be in touch within 48 hours of receiving your intake.</p><div class="intake-contact"><span class="eyebrow">Direct contact</span><a href="mailto:andrew@unhingedventures.com">andrew@unhingedventures.com</a></div></div>
         <div class="intake-form-wrap">
 <form action="https://formspree.io/f/xqegpgov" method="POST" id="consultation-form" data-state="idle" class="text-left space-y-8 font-geist">
           <div>
