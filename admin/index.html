@@ -5,52 +5,42 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>Admin Sign In | Resilience Systems</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;500;600&family=Geist:wght@300;400;500;600&family=Space+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="admin.css">
   <style>
-    body { min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; position: relative; overflow: hidden; }
-    .orb { position: absolute; width: 640px; height: 640px; border-radius: 50%; background: radial-gradient(circle, rgba(229,230,231,.07), transparent 65%); top: -220px; right: -180px; pointer-events: none; }
-    .card { position: relative; width: min(420px, 100%); border: 1px solid var(--line); background: rgba(16,18,20,.8); backdrop-filter: blur(10px); }
-    .card-head { padding: 28px 28px 22px; border-bottom: 1px solid var(--line); }
-    .card-head .adm-brand { margin-bottom: 28px; }
-    h1 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 44px; line-height: .95; letter-spacing: .01em; text-transform: uppercase; }
-    h1 .outline { color: transparent; -webkit-text-stroke: 1px var(--paper); display: block; }
-    form { padding: 24px 28px 28px; display: grid; gap: 16px; }
-    .who { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .who label { border: 1px solid var(--line-2); padding: 14px 10px; text-align: center; cursor: pointer; font-size: 12px; transition: border-color .2s, background .2s; }
+    body { min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; }
+    .card { width: min(380px, 100%); border: 2px solid var(--ink); }
+    .card-head { padding: 14px 20px; border-bottom: 1px solid var(--rule); }
+    .card-head .t { font-weight: 600; letter-spacing: .02em; }
+    .card-head small { display: block; color: var(--ink-3); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+    form { padding: 16px 20px 20px; display: grid; gap: 12px; }
+    .who { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .who label { border: 1px solid var(--rule-soft); padding: 8px; text-align: center; cursor: pointer; font-size: 13px; }
     .who input { position: absolute; opacity: 0; pointer-events: none; }
-    .who input:checked + span { color: #fff; }
-    .who label:has(input:checked) { border-color: var(--paper); background: var(--panel-2); }
-    .who label:hover { border-color: var(--paper); }
-    .err { color: #e3a194; font-size: 12px; min-height: 18px; margin: 0; }
-    .note { font-size: 11px; color: var(--muted); margin: 0; }
-    .btn-solid { justify-content: space-between; min-height: 50px; }
+    .who label:has(input:checked) { border-color: var(--ink); background: var(--sel); font-weight: 600; }
+    .err { color: #a3271b; font-size: 12px; min-height: 16px; margin: 0; }
+    .note { font-size: 12px; color: var(--ink-3); margin: 0; }
+    .btn-solid { padding: 8px 12px; }
     .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
   </style>
 </head>
 <body>
-  <div class="orb" aria-hidden="true"></div>
   <main class="card">
-    <div class="card-head">
-      <a href="../index.html" class="adm-brand" aria-label="Back to the site"><span class="adm-emblem" aria-hidden="true">R<span>/</span></span><span class="adm-brandname">Resilience<br>Systems</span></a>
-      <p class="eyebrow" style="margin:0 0 10px">Restricted</p>
-      <h1>Admin<span class="outline">Access</span></h1>
-    </div>
+    <div class="card-head"><div class="t">Resilience Systems · Admin</div><small>Restricted</small></div>
 
     <form id="demo-form" hidden>
       <span class="lbl">Sign in as</span>
       <div class="who" id="who"></div>
       <p class="note">Demo mode. Data lives in this browser only until the database is connected.</p>
       <p class="err" id="demo-err"></p>
-      <button class="btn btn-solid" type="submit">Enter <span aria-hidden="true">→</span></button>
+      <button class="btn btn-solid" type="submit">Enter</button>
     </form>
 
     <form id="live-form" hidden>
       <label class="field"><span class="lbl">Email</span><input type="email" id="email" autocomplete="username" required></label>
       <label class="field"><span class="lbl">Password</span><input type="password" id="password" autocomplete="current-password"></label>
       <p class="err" id="live-err"></p>
-      <button class="btn btn-solid" type="submit">Sign in <span aria-hidden="true">→</span></button>
+      <button class="btn btn-solid" type="submit">Sign in</button>
       <div class="row"><span class="note">First time, or forgot it?</span><button type="button" class="adm-link" id="send-link">Email me a sign-in link</button></div>
     </form>
   </main>
@@ -88,7 +78,7 @@
         err.textContent = '';
         const email = f.elements.email.value.trim();
         if (!email) { err.textContent = 'Enter your email first.'; return; }
-        try { await auth.sendLink(email); err.style.color = 'var(--muted)'; err.textContent = 'Check your inbox for the sign-in link.'; }
+        try { await auth.sendLink(email); err.style.color = 'var(--ink-3)'; err.textContent = 'Check your inbox for the sign-in link.'; }
         catch (x) { err.style.color = ''; err.textContent = x.message; }
       });
     })();

@@ -5,37 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>Training Modules | Resilience Systems Admin</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;500;600&family=Geist:wght@300;400;500;600&family=Space+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="admin.css">
   <style>
-    main { max-width: 980px; margin: 0 auto; padding: 40px 32px 80px; }
-    .top { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; padding-bottom: 24px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
-    h1 { margin: 6px 0 0; font-family: var(--display); font-weight: 500; font-size: clamp(36px, 5vw, 56px); line-height: .95; text-transform: uppercase; }
-    h1 .outline { color: transparent; -webkit-text-stroke: 1px var(--paper); }
-    .intro { color: var(--muted); font-size: 13px; max-width: 60ch; margin: 12px 0 0; }
-    .ml { list-style: none; margin: 0; padding: 0; }
-    .mi { display: grid; grid-template-columns: auto 44px 1fr auto; gap: 14px; align-items: start; padding: 20px 0; border-bottom: 1px solid var(--line); }
-    .mi .drag { padding-top: 4px; }
-    .mi .idx { font-family: var(--display); font-size: 26px; line-height: 1; color: var(--dim); }
+    main { max-width: 1040px; margin: 0 auto; padding: 24px 24px 80px; }
+    .top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+    .intro { color: var(--ink-2); max-width: 65ch; margin: 0; }
+    .ml { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+    .mi { display: grid; grid-template-columns: 20px 32px 1fr auto; gap: 10px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--rule-soft); background: #fff; }
+    .mi .idx { font-family: var(--mono); font-size: 13px; color: var(--ink-3); padding-top: 2px; }
     .mi h2 { margin: 0; font-size: 15px; font-weight: 500; }
-    .mi p { margin: 4px 0 0; color: var(--muted); font-size: 13px; max-width: 70ch; }
-    .mi .lk { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 12px; }
-    .mi .lk a { color: #b2b7bb; text-decoration: underline; text-underline-offset: 3px; }
-    .mi .lk a:hover { color: #fff; }
-    .mi .side { text-align: right; display: grid; gap: 8px; justify-items: end; }
-    .mi .meta { font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
-    .empty { padding: 48px 0; text-align: center; color: var(--muted); }
-    .links-help { font-size: 11px; color: var(--dim); }
-    @media (max-width: 640px) { main { padding: 24px 16px 60px; } .mi { grid-template-columns: auto 1fr; } .mi .idx { display: none; } .mi .side { grid-column: 2; justify-items: start; text-align: left; } }
+    .mi p { margin: 2px 0 0; color: var(--ink-2); font-size: 13px; max-width: 70ch; }
+    .mi .lk { display: flex; flex-wrap: wrap; gap: 2px 14px; margin-top: 4px; font-size: 12px; }
+    .mi .lk a { color: var(--ink-3); }
+    .mi .side { text-align: right; display: grid; gap: 4px; justify-items: end; }
+    .mi .meta { font-family: var(--mono); font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+    .empty { padding: 32px 0; color: var(--ink-3); }
+    .links-help { font-size: 12px; color: var(--ink-3); }
+    @media (max-width: 640px) { main { padding: 16px 16px 60px; } .mi { grid-template-columns: 20px 1fr; } .mi .idx { display: none; } .mi .side { grid-column: 2; justify-items: start; text-align: left; } }
   </style>
 </head>
 <body>
   <main>
     <div class="top">
-      <div><span class="eyebrow">Library</span><h1>Training <span class="outline">Modules</span></h1>
-        <p class="intro">The master list of modules. Each customer gets their own sequence, set on their page. Drag here to set the default library order.</p></div>
-      <button class="btn btn-solid" id="add" type="button" style="gap:32px">New module <span aria-hidden="true">+</span></button>
+      <p class="intro">The master list of modules. Each customer's order is set on their page; drag ⋮⋮ here to set the library order.</p>
+      <button class="btn btn-solid" id="add" type="button">+ New module</button>
     </div>
     <ul class="ml" id="list"></ul>
   </main>
@@ -75,7 +69,7 @@
         const links = (m.links || []).filter(l => l && l.url).map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label || 'Link')} ↗</a>`).join('');
         return `<li class="mi" data-id="${m.id}"><span class="drag" title="Drag to reorder" aria-hidden="true">⋮⋮</span><span class="idx">${String(i + 1).padStart(2, '0')}</span>
           <div><h2>${esc(m.title)}</h2>${m.description ? `<p>${esc(m.description)}</p>` : ''}${links ? `<div class="lk">${links}</div>` : ''}</div>
-          <div class="side"><span class="meta">${m.duration_min ? m.duration_min + ' min · ' : ''}${n} customer${n === 1 ? '' : 's'}</span><button class="btn btn-sm" type="button" data-edit>Edit</button></div></li>`;
+          <div class="side"><span class="meta">${m.duration_min ? m.duration_min + ' min · ' : ''}${n} customer${n === 1 ? '' : 's'}</span><button class="adm-link" type="button" data-edit>Edit</button></div></li>`;
       }).join('') : '<li class="empty">No modules yet.</li>';
       Sortable.create(host, { handle: '.drag', animation: 150, onEnd: async () => {
         const ids = [...host.querySelectorAll('[data-id]')].map(li => li.dataset.id);

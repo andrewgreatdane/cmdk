@@ -1,73 +1,71 @@
-/* Resilience Systems admin — dark theme (matches the homepage) */
+/* Resilience Systems admin — light theme, matches the master gear list */
 :root {
-  --ink: #08090a; --panel: #101214; --panel-2: #15181b; --paper: #e5e6e7; --muted: #989da3; --dim: #5e656b;
-  --line: rgba(229,230,231,.14); --line-2: rgba(229,230,231,.26);
-  --gold: #b9a27a; --gold-soft: rgba(185,162,122,.12);
-  --sans: 'Geist', system-ui, sans-serif; --label: 'Space Grotesk', sans-serif; --display: 'Antonio', sans-serif;
+  --bg: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --ink-3: #7a7a7a;
+  --rule: #000000; --rule-soft: #d9d9d9; --sel: #f2f2f2; --hover: #fafafa;
+  --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(--sans); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
-a { color: inherit; text-decoration: none; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.45; }
+a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+a:hover { text-decoration-thickness: 2px; }
 button, input, select, textarea { font: inherit; color: inherit; }
-:focus-visible { outline: 1px solid var(--paper); outline-offset: 2px; }
-.eyebrow, .lbl { font-family: var(--label); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 [hidden] { display: none !important; }
+.lbl { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 
-/* header */
-.adm-header { position: sticky; top: 0; z-index: 40; height: 72px; display: flex; align-items: center; gap: 32px; padding: 0 32px; background: rgba(8,9,10,.9); backdrop-filter: blur(18px); border-bottom: 1px solid var(--line); }
-.adm-brand { display: inline-flex; align-items: center; gap: 12px; }
-.adm-emblem { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 34px; border: 1px solid var(--line-2); font-family: var(--display); font-size: 22px; line-height: 1; }
-.adm-emblem span { color: #858b91; font-weight: 400; }
-.adm-brandname { font-size: 9px; line-height: 1.6; font-weight: 500; letter-spacing: .11em; text-transform: uppercase; }
-.adm-nav { display: flex; gap: 28px; flex: 1; }
-.adm-nav a { font-size: 11px; color: #b2b7bb; padding: 6px 0; border-bottom: 1px solid transparent; transition: color .3s, border-color .3s; }
-.adm-nav a:hover { color: #fff; }
-.adm-nav a[aria-current] { color: #fff; border-bottom-color: var(--paper); }
-.adm-nav small { color: var(--dim); margin-right: 8px; font-size: 9px; }
-.adm-user { display: flex; align-items: center; gap: 16px; font-size: 11px; color: #b2b7bb; }
-.adm-demo { font-family: var(--label); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; border: 1px solid var(--gold); color: var(--gold); padding: 3px 7px; }
-.adm-link { background: none; border: 0; padding: 0; color: var(--muted); cursor: pointer; font-size: 11px; text-decoration: underline; text-underline-offset: 3px; }
-.adm-link:hover { color: #fff; }
+/* top bar (same as gear page) */
+.adm-header { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 2px solid var(--rule); padding: 14px 24px 0; }
+.adm-top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; padding-bottom: 10px; }
+.adm-name { font-weight: 600; letter-spacing: .02em; text-decoration: none; }
+.adm-name small { display: block; font-weight: 400; color: var(--ink-3); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+.adm-nav { display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: 12px; padding: 6px 0 8px; border-top: 1px solid var(--rule-soft); align-items: baseline; }
+.adm-nav a { color: var(--ink-2); }
+.adm-nav a[aria-current] { color: var(--ink); font-weight: 600; text-decoration: none; }
+.adm-nav .sp { flex: 1; }
+.adm-nav .who { color: var(--ink-3); font-family: var(--mono); }
+.adm-demo { font-family: var(--mono); font-size: 11px; border: 1px solid var(--ink-3); color: var(--ink-3); padding: 0 5px; }
+.adm-link { background: none; border: 0; padding: 0; color: var(--ink-2); cursor: pointer; font-size: 12px; text-decoration: underline; text-underline-offset: 2px; }
+.adm-link:hover { color: var(--ink); }
 
 /* buttons & fields */
-.btn { display: inline-flex; align-items: center; gap: 10px; padding: 10px 16px; min-height: 40px; border: 1px solid var(--line-2); background: transparent; color: var(--paper); font-size: 11px; font-weight: 500; letter-spacing: .04em; cursor: pointer; transition: background .2s, border-color .2s, color .2s; }
-.btn:hover { border-color: var(--paper); }
-.btn-solid { background: var(--paper); color: var(--ink); border-color: var(--paper); }
-.btn-solid:hover { background: #fff; }
-.btn-danger:hover { border-color: #c96a5a; color: #e3a194; }
-.btn-sm { min-height: 30px; padding: 5px 10px; font-size: 10px; }
-.field { display: grid; gap: 6px; }
-.field input, .field select, .field textarea, .inp { width: 100%; background: var(--ink); border: 1px solid var(--line-2); padding: 10px 12px; color: var(--paper); border-radius: 0; }
-.field textarea { min-height: 84px; resize: vertical; }
-.field input:focus, .field select:focus, .field textarea:focus, .inp:focus { outline: none; border-color: var(--paper); }
-.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.btn { font-size: 13px; background: none; border: 1px solid var(--ink); padding: 4px 10px; cursor: pointer; color: var(--ink); }
+.btn:hover { background: var(--ink); color: var(--bg); }
+.btn-solid { background: var(--ink); color: var(--bg); }
+.btn-solid:hover { background: var(--ink-2); }
+.btn-danger:hover { background: #a3271b; border-color: #a3271b; color: #fff; }
+.field { display: grid; gap: 4px; font-size: 12px; color: var(--ink-2); }
+.field .lbl { text-transform: none; letter-spacing: 0; color: var(--ink-2); font-size: 12px; }
+.field input, .field select, .field textarea, .inp { width: 100%; font-size: 14px; padding: 6px 8px; border: 1px solid var(--rule-soft); background: var(--bg); color: var(--ink); border-radius: 0; }
+.field textarea { min-height: 64px; resize: vertical; }
+.field input:focus, .field select:focus, .field textarea:focus, .inp:focus { outline: none; border-color: var(--ink); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* section heading (same as gear page) */
+.h2 { font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; margin: 0; padding: 0 0 8px; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.h2 .sub { font-family: var(--mono); font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--ink-3); font-size: 12px; }
 
 /* dialog */
-dialog.adm-dialog { background: var(--panel); color: var(--paper); border: 1px solid var(--line-2); padding: 0; width: min(560px, calc(100vw - 32px)); }
-dialog.adm-dialog::backdrop { background: rgba(0,0,0,.6); backdrop-filter: blur(4px); }
-.dlg-head { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
-.dlg-head h2 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 22px; letter-spacing: .02em; text-transform: uppercase; }
-.dlg-body { padding: 20px 24px; display: grid; gap: 14px; }
-.dlg-foot { padding: 16px 24px; border-top: 1px solid var(--line); display: flex; gap: 10px; justify-content: flex-end; }
+dialog.adm-dialog { border: 2px solid var(--ink); padding: 0; width: min(560px, calc(100vw - 32px)); background: var(--bg); color: var(--ink); }
+dialog.adm-dialog::backdrop { background: rgba(0,0,0,.35); }
+.dlg-head { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 20px; border-bottom: 1px solid var(--rule); }
+.dlg-head h2 { margin: 0; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; }
+.dlg-body { padding: 16px 20px; display: grid; gap: 12px; }
+.dlg-foot { padding: 12px 20px; border-top: 1px solid var(--rule-soft); display: flex; gap: 8px; justify-content: flex-end; }
 .dlg-foot .spacer { flex: 1; }
 
 /* toast */
-#rs-toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; background: var(--paper); color: var(--ink); padding: 10px 16px; font-size: 12px; z-index: 100; transition: opacity .2s, transform .2s; pointer-events: none; }
+#rs-toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; background: #000; color: #fff; padding: 8px 14px; font-size: 13px; z-index: 100; transition: opacity .2s, transform .2s; pointer-events: none; }
 #rs-toast.show { opacity: 1; transform: translate(-50%, 0); }
-#rs-toast.bad { background: #c96a5a; color: #fff; }
+#rs-toast.bad { background: #a3271b; }
 
-/* sortable states */
-.sortable-ghost { opacity: .35; }
-.sortable-chosen { background: var(--panel-2) !important; }
-.drag { cursor: grab; color: var(--dim); font-family: var(--label); user-select: none; letter-spacing: -2px; padding: 0 6px; }
+/* drag */
+.sortable-ghost { background: var(--sel) !important; opacity: .6; }
+.drag { cursor: grab; color: var(--ink-3); font-family: var(--mono); user-select: none; letter-spacing: -2px; }
 .drag:active { cursor: grabbing; }
 
-@media (max-width: 760px) {
-  .adm-header { padding: 0 16px; gap: 16px; height: auto; min-height: 64px; flex-wrap: wrap; padding-block: 10px; }
-  .adm-nav { order: 3; flex-basis: 100%; gap: 20px; }
-  .adm-nav small { display: none; }
-  .adm-brandname { display: none; }
-  .adm-user { margin-left: auto; }
+@media (max-width: 720px) {
+  .adm-header { padding: 10px 16px 0; }
   .grid2 { grid-template-columns: 1fr; }
 }

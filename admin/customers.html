@@ -5,140 +5,121 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>Customers | Resilience Systems Admin</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;500;600&family=Geist:wght@300;400;500;600&family=Space+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="admin.css">
   <style>
-    .wrap { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 72px); }
-    /* client list */
-    .clients { border-right: 1px solid var(--line); padding: 24px 0; position: sticky; top: 72px; height: calc(100vh - 72px); overflow: auto; }
-    .clients-head { padding: 0 20px 16px; display: grid; gap: 12px; }
-    .clients-head .row { display: flex; justify-content: space-between; align-items: baseline; }
-    .clients-head h2 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 26px; text-transform: uppercase; letter-spacing: .02em; }
-    .clist { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
-    .clist button { width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); padding: 14px 20px; cursor: pointer; display: grid; gap: 3px; transition: background .2s; }
-    .clist button:hover { background: var(--panel); }
-    .clist button[aria-current] { background: var(--panel-2); box-shadow: inset 2px 0 0 var(--paper); }
-    .clist .nm { font-size: 13px; font-weight: 500; }
-    .clist .mt { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
-    .clist .empty { padding: 20px; color: var(--muted); font-size: 12px; }
+    .wrap { display: grid; grid-template-columns: 240px 1fr; }
+    /* customer list */
+    .clients { border-right: 1px solid var(--rule-soft); padding: 24px 0; position: sticky; top: 112px; height: calc(100vh - 112px); overflow: auto; }
+    .clients-head { padding: 0 20px 14px; display: grid; gap: 10px; }
+    .clist { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+    .clist button { width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--rule-soft); padding: 10px 20px; cursor: pointer; display: grid; gap: 1px; }
+    .clist button:hover { background: var(--hover); }
+    .clist button[aria-current] { background: var(--sel); }
+    .clist button[aria-current] .nm { font-weight: 600; }
+    .clist .nm { font-size: 14px; font-weight: 500; }
+    .clist .mt { font-size: 12px; color: var(--ink-3); display: flex; justify-content: space-between; gap: 8px; }
+    .clist .empty { padding: 16px 20px; color: var(--ink-3); font-size: 13px; }
 
     /* workspace */
-    .work { padding: 32px 40px 80px; min-width: 0; }
-    .blank { height: 60vh; display: grid; place-items: center; text-align: center; color: var(--muted); }
-    .blank h2 { font-family: var(--display); font-weight: 500; font-size: 40px; text-transform: uppercase; color: transparent; -webkit-text-stroke: 1px var(--line-2); margin: 0 0 8px; }
-    .c-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
-    .c-head h1 { margin: 6px 0 8px; font-family: var(--display); font-weight: 500; font-size: clamp(36px, 5vw, 56px); line-height: .95; text-transform: uppercase; letter-spacing: .01em; }
-    .c-meta { font-size: 12px; color: #b2b7bb; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+    .work { padding: 24px 32px 80px; min-width: 0; max-width: 1200px; }
+    .blank { padding: 80px 0; color: var(--ink-3); }
+    .c-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+    .c-head h1 { margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -.01em; }
+    .c-meta { font-size: 13px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 2px 14px; margin-top: 4px; }
     .c-meta span:empty { display: none; }
-    .c-notes { margin: 10px 0 0; font-size: 12px; color: var(--muted); max-width: 70ch; white-space: pre-wrap; }
-    .c-actions { display: flex; gap: 8px; }
+    .c-notes { margin: 6px 0 0; font-size: 13px; color: var(--ink-3); max-width: 70ch; white-space: pre-wrap; }
 
-    .totals { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--line); margin: 24px 0 40px; position: sticky; top: 72px; z-index: 5; background: rgba(8,9,10,.94); backdrop-filter: blur(12px); }
-    .tot { padding: 14px 18px; border-right: 1px solid var(--line); min-width: 0; }
-    .tot:last-child { border-right: 0; }
-    .tot .v { font-family: var(--display); font-size: 28px; font-weight: 500; line-height: 1.1; margin-top: 4px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-    .tot .s { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
-    .bar { height: 3px; background: var(--line); margin-top: 8px; }
-    .bar i { display: block; height: 100%; background: var(--paper); max-width: 100%; transition: width .3s; }
-    .bar.over i { background: #c96a5a; }
+    /* totals live in the top bar, like the gear page */
+    .adm-slot { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+    .adm-slot .amt { font-family: var(--mono); font-size: 30px; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .adm-slot .cnt { font-family: var(--mono); font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+    .adm-slot .over { color: #a3271b; }
 
-    .sec-title { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 14px; gap: 16px; flex-wrap: wrap; }
-    .sec-title h2 { margin: 0; font-family: var(--label); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; font-weight: 500; }
-    .sec-title h2 small { color: var(--dim); margin-right: 10px; }
-    .hint { font-size: 11px; color: var(--muted); }
+    .cols { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px; align-items: start; margin-bottom: 48px; }
+    .side { position: sticky; top: 128px; }
+    .colhead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+    .colhead .inp { max-width: 200px; font-size: 13px; padding: 4px 8px; }
+    .hint { font-size: 12px; color: var(--ink-3); margin: 6px 0 0; }
 
-    .cols { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; margin-bottom: 56px; }
-    .panel { border: 1px solid var(--line); background: var(--panel); min-width: 0; }
-    .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
-    .panel-head .inp { max-width: 220px; padding: 7px 10px; font-size: 12px; }
-    .sticky { position: sticky; top: 190px; max-height: calc(100vh - 210px); display: flex; flex-direction: column; }
-    .sticky .scroll { overflow: auto; }
-
-    /* catalog */
-    .cat > summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--line); font-family: var(--label); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #b2b7bb; user-select: none; }
+    /* catalog (gear-page rows) */
+    .cat { margin-top: 18px; }
+    .cat > summary { list-style: none; cursor: pointer; user-select: none; }
     .cat > summary::-webkit-details-marker { display: none; }
-    .cat > summary::before { content: '+'; width: 16px; color: var(--dim); }
-    .cat[open] > summary::before { content: '–'; }
-    .cat > summary .t { flex: 1; }
-    .cat > summary .n { color: var(--dim); letter-spacing: .04em; }
-    .cat > summary:hover { color: #fff; }
+    .cat > summary .h2::before { content: "+"; font-family: var(--mono); font-size: 14px; width: 1em; flex: none; }
+    .cat[open] > summary .h2::before { content: "\2013"; }
+    .cat > summary .h2 .t { flex: 1; }
+    .cat > summary:hover .t { text-decoration: underline; text-underline-offset: 3px; }
+    .cat:not([open]) > summary .h2 { border-bottom-color: var(--rule-soft); }
     .gl { list-style: none; margin: 0; padding: 0; }
-    .gi { display: grid; grid-template-columns: 22px 40px 1fr auto; gap: 12px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); cursor: pointer; transition: background .15s, box-shadow .15s; user-select: none; }
-    .gi:hover { background: var(--panel-2); }
-    .gi .box { width: 16px; height: 16px; border: 1px solid var(--line-2); display: grid; place-items: center; font-size: 11px; line-height: 1; color: var(--ink); }
-    .gi.on { background: var(--gold-soft); box-shadow: inset 2px 0 0 var(--gold); }
-    .gi.on .box { background: var(--gold); border-color: var(--gold); }
+    .gi { display: grid; grid-template-columns: 20px 44px 1fr auto; gap: 10px; align-items: center; padding: 8px 4px; border-bottom: 1px solid var(--rule-soft); cursor: pointer; user-select: none; }
+    .gi:hover { background: var(--hover); }
+    .gi .box { width: 16px; height: 16px; border: 1px solid var(--ink); display: grid; place-items: center; font-size: 11px; line-height: 1; color: #fff; background: #fff; }
+    .gi.on { background: var(--sel); }
+    .gi.on .box { background: #000; }
     .gi.on .box::after { content: '✓'; }
-    .th { width: 40px; height: 40px; background: #fff; display: block; object-fit: contain; }
-    .th.none { background: var(--panel-2); border: 1px dashed var(--line-2); }
-    .gi .nm { font-size: 13px; line-height: 1.3; }
-    .gi .sub { font-size: 11px; color: var(--muted); }
-    .gi .pr { font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-    .gi .pr small { display: block; color: var(--dim); font-size: 10px; }
-    .gi.arch { opacity: .5; }
+    .gi.on .nm { font-weight: 600; }
+    .th { width: 44px; height: 44px; display: block; object-fit: contain; background: #fff; border: 1px solid var(--rule-soft); }
+    .th.none { border-style: dashed; }
+    .gi .nm { font-size: 14px; line-height: 1.3; font-weight: 500; }
+    .gi .sub { font-size: 12px; color: var(--ink-3); }
+    .gi .pr { font-family: var(--mono); font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
     /* package */
-    .pk { list-style: none; margin: 0; padding: 0; min-height: 120px; }
-    .pk-empty { padding: 32px 20px; text-align: center; color: var(--muted); font-size: 12px; border: 1px dashed var(--line-2); margin: 16px; }
-    .pi { display: grid; grid-template-columns: minmax(0,1fr) auto auto auto auto; gap: 10px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
-    .pi .nm { font-size: 12.5px; line-height: 1.3; }
-    .pi .sub { font-size: 10px; color: var(--dim); font-family: var(--label); letter-spacing: .1em; text-transform: uppercase; }
-    .qty { display: inline-flex; border: 1px solid var(--line-2); }
-    .qty button { width: 24px; background: none; border: 0; cursor: pointer; color: var(--muted); }
-    .qty button:hover { color: #fff; }
-    .qty input { width: 30px; text-align: center; background: none; border: 0; border-inline: 1px solid var(--line); padding: 3px 0; font-size: 12px; -moz-appearance: textfield; }
+    .pk { list-style: none; margin: 0; padding: 0; min-height: 60px; }
+    .pk-empty { padding: 20px 4px; color: var(--ink-3); font-size: 13px; border-bottom: 1px dashed var(--rule-soft); }
+    .pi { display: grid; grid-template-columns: minmax(0,1fr) auto auto auto auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--rule-soft); }
+    .pi .nm { font-size: 14px; line-height: 1.3; }
+    .qty { display: inline-flex; border: 1px solid var(--rule-soft); }
+    .qty button { width: 22px; background: none; border: 0; cursor: pointer; color: var(--ink-3); font-family: var(--mono); }
+    .qty button:hover { color: var(--ink); }
+    .qty input { width: 30px; text-align: center; background: none; border: 0; border-inline: 1px solid var(--rule-soft); padding: 2px 0; font-family: var(--mono); font-size: 13px; -moz-appearance: textfield; }
     .qty input::-webkit-inner-spin-button { -webkit-appearance: none; }
-    .unit { width: 84px; background: var(--ink); border: 1px solid var(--line); padding: 4px 6px; font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
-    .unit:focus { outline: none; border-color: var(--paper); }
-    .unit.custom { border-color: var(--gold); }
-    .line { text-align: right; font-size: 12px; min-width: 76px; font-variant-numeric: tabular-nums; }
-    .line small { display: block; color: var(--dim); font-size: 10px; }
-    .x { background: none; border: 0; color: var(--dim); cursor: pointer; font-size: 16px; padding: 0 0 0 4px; line-height: 1; }
-    .x:hover { color: #e3a194; }
-    .pk-foot { padding: 12px 16px; display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); border-top: 1px solid var(--line); }
-    .pk.drop-hover { background: var(--gold-soft); }
+    .unit { width: 80px; border: 1px solid var(--rule-soft); padding: 2px 6px; font-family: var(--mono); font-size: 13px; text-align: right; background: #fff; }
+    .unit:focus { outline: none; border-color: var(--ink); }
+    .unit.custom { border-color: var(--ink); }
+    .line { text-align: right; font-family: var(--mono); font-size: 13px; min-width: 80px; font-variant-numeric: tabular-nums; }
+    .x { background: none; border: 0; color: var(--ink-3); cursor: pointer; font-size: 16px; padding: 0 0 0 2px; line-height: 1; }
+    .x:hover { color: #a3271b; }
+    .pk.drop-hover { background: var(--sel); }
 
     /* training */
-    .tl { list-style: none; margin: 0; padding: 0; min-height: 80px; counter-reset: step; }
-    .ti { display: grid; grid-template-columns: auto 34px 1fr auto; gap: 10px; align-items: start; padding: 14px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
-    .ti .idx { font-family: var(--display); font-size: 22px; line-height: 1; color: var(--muted); }
-    .ti .nm { font-size: 13px; font-weight: 500; }
-    .ti .ds { font-size: 12px; color: var(--muted); margin-top: 2px; }
-    .ti .lk { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; font-size: 11px; }
-    .ti .lk a { color: #b2b7bb; text-decoration: underline; text-underline-offset: 3px; }
-    .ti .lk a:hover { color: #fff; }
-    .ti .dur { font-size: 11px; color: var(--dim); white-space: nowrap; }
+    .tl { list-style: none; margin: 0; padding: 0; min-height: 50px; }
+    .ti { display: grid; grid-template-columns: auto 28px 1fr auto; gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--rule-soft); background: #fff; }
+    .ti .idx { font-family: var(--mono); font-size: 13px; color: var(--ink-3); padding-top: 1px; }
+    .ti .nm { font-size: 14px; font-weight: 500; }
+    .ti .ds { font-size: 13px; color: var(--ink-2); }
+    .ti .lk { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 2px; font-size: 12px; }
+    .ti .lk a { color: var(--ink-3); }
+    .ti .dur { font-family: var(--mono); font-size: 12px; color: var(--ink-3); white-space: nowrap; }
     .lib .ti { grid-template-columns: 1fr auto; cursor: grab; }
-    .addm { background: none; border: 1px solid var(--line-2); color: var(--paper); width: 28px; height: 28px; cursor: pointer; font-size: 16px; line-height: 1; }
-    .addm:hover { border-color: var(--paper); background: var(--paper); color: var(--ink); }
-    .tl-empty { padding: 28px 20px; text-align: center; color: var(--muted); font-size: 12px; }
+    .addm { background: none; border: 1px solid var(--ink); width: 24px; height: 24px; cursor: pointer; font-size: 15px; line-height: 1; padding: 0; }
+    .addm:hover { background: #000; color: #fff; }
+    .tl-empty { padding: 16px 0; color: var(--ink-3); font-size: 13px; }
 
-    @media (max-width: 1100px) { .totals { grid-template-columns: repeat(3, 1fr); } .tot:nth-child(3) { border-right: 0; } .tot:nth-child(n+4) { border-top: 1px solid var(--line); } .sticky { top: 260px; max-height: none; } }
     @media (max-width: 900px) {
       .wrap { grid-template-columns: 1fr; }
-      .clients { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); max-height: 300px; }
+      .clients { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--rule-soft); max-height: 280px; padding-top: 16px; }
       .cols { grid-template-columns: 1fr; }
-      .sticky { position: static; max-height: none; }
-      .totals { position: static; }
-      .work { padding: 24px 16px 60px; }
+      .side { position: static; }
+      .work { padding: 20px 16px 60px; }
+      .adm-slot .amt { font-size: 24px; }
     }
-    @media (max-width: 520px) { .totals { grid-template-columns: 1fr 1fr; } .tot { border-right: 0; border-top: 1px solid var(--line); } .tot:first-child, .tot:nth-child(2) { border-top: 0; } .pi { grid-template-columns: minmax(0,1fr) auto auto auto; } .pi .unit { display: none; } }
+    @media (max-width: 520px) { .pi { grid-template-columns: minmax(0,1fr) auto auto auto; } .pi .unit { display: none; } }
   </style>
 </head>
 <body>
   <div class="wrap">
     <aside class="clients" aria-label="Customers">
       <div class="clients-head">
-        <div class="row"><h2>Customers</h2><span class="lbl" id="ccount"></span></div>
         <input class="inp" id="csearch" type="search" placeholder="Search customers" aria-label="Search customers">
-        <button class="btn btn-solid" id="new-customer" type="button" style="justify-content:space-between">New customer <span aria-hidden="true">+</span></button>
+        <button class="btn btn-solid" id="new-customer" type="button">+ New customer</button>
       </div>
       <ul class="clist" id="clist"></ul>
     </aside>
 
     <main class="work" id="work">
-      <div class="blank"><div><h2>Select a customer</h2><p>Or add a new one to start building their package.</p></div></div>
+      <p class="blank">Select a customer, or add a new one.</p>
     </main>
   </div>
 
@@ -215,10 +196,9 @@
     function renderList() {
       const q = document.getElementById('csearch').value.trim().toLowerCase();
       const rows = customers.filter(c => !q || [c.name, c.email, c.location, c.status].join(' ').toLowerCase().includes(q));
-      document.getElementById('ccount').textContent = customers.length;
-      document.getElementById('clist').innerHTML = rows.length ? rows.map(c => {
+            document.getElementById('clist').innerHTML = rows.length ? rows.map(c => {
         const n = cg.filter(x => x.customer_id === c.id).reduce((s, x) => s + x.qty, 0);
-        return `<li><button type="button" data-id="${c.id}" ${c.id === currentId ? 'aria-current="true"' : ''}><span class="nm">${esc(c.name)}</span><span class="mt"><span>${esc(c.status || '')}${c.location ? ' · ' + esc(c.location) : ''}</span><span class="num">${n} items</span></span></button></li>`;
+        return `<li><button type="button" data-id="${c.id}" ${c.id === currentId ? 'aria-current="true"' : ''}><span class="nm">${esc(c.name)}</span><span class="mt">${esc(c.status || 'Intake')} · ${n} item${n === 1 ? '' : 's'}</span></button></li>`;
       }).join('') : `<li class="empty">${customers.length ? 'No match.' : 'No customers yet.'}</li>`;
     }
     document.getElementById('csearch').addEventListener('input', renderList);
@@ -249,52 +229,44 @@
       return { lines: lines.length, units, cost, sell, vol, cap, est };
     }
     function renderTotals(c) {
-      const t = totals(c), el = document.getElementById('totals'); if (!el) return;
-      const m = t.sell - t.cost, pct = t.sell ? (m / t.sell) * 100 : 0;
-      const usd = n => money.cad(n / S.rate) + ' USD';
-      const fill = t.cap ? Math.min(100, (t.vol / t.cap) * 100) : 0;
-      el.innerHTML = `
-        <div class="tot"><span class="lbl">Items</span><div class="v">${t.units}</div><div class="s">${t.lines} line${t.lines === 1 ? '' : 's'}</div></div>
-        <div class="tot"><span class="lbl">Volume</span><div class="v">${t.est ? '≈' : ''}${t.vol.toFixed(1)} L</div><div class="s">${t.cap ? `of ${t.cap.toFixed(1)} L case capacity` : 'no case selected'}</div>${t.cap ? `<div class="bar ${t.vol > t.cap ? 'over' : ''}"><i style="width:${fill}%"></i></div>` : ''}</div>
-        <div class="tot"><span class="lbl">Our cost</span><div class="v">${money.whole(t.cost)}</div><div class="s">${money.cad(t.cost)} CAD · ${usd(t.cost)}</div></div>
-        <div class="tot"><span class="lbl">Client price</span><div class="v">${money.whole(t.sell)}</div><div class="s">${money.cad(t.sell)} CAD · ${usd(t.sell)}</div></div>
-        <div class="tot"><span class="lbl">Margin</span><div class="v">${money.whole(m)}</div><div class="s">${pct.toFixed(1)}% · USD→CAD ${S.rate}</div></div>`;
+      const el = document.getElementById('adm-slot'); if (!el) return;
+      if (!c) { el.innerHTML = ''; return; }
+      const t = totals(c), m = t.sell - t.cost, pct = t.sell ? (m / t.sell) * 100 : 0;
+      const vol = t.cap ? `<span class="${t.vol > t.cap ? 'over' : ''}">${t.est ? '≈' : ''}${t.vol.toFixed(1)} / ${t.cap.toFixed(1)} L</span>` : `${t.est ? '≈' : ''}${t.vol.toFixed(1)} L`;
+      el.innerHTML = `<span class="lbl">Package</span><span class="amt">${money.cad(t.sell)}</span>
+        <span class="cnt">${t.units} item${t.units === 1 ? '' : 's'} · ${vol} · cost ${money.cad(t.cost)} · margin ${money.cad(m)} (${pct.toFixed(0)}%) · ${money.cad(t.sell / S.rate)} USD</span>`;
     }
 
     /* ---------- workspace ---------- */
     function renderWork() {
       const w = document.getElementById('work');
       const c = customers.find(x => x.id === currentId);
-      if (!c) { w.innerHTML = `<div class="blank"><div><h2>Select a customer</h2><p>Or add a new one to start building their package.</p></div></div>`; return; }
+      if (!c) { w.innerHTML = `<p class="blank">Select a customer, or add a new one.</p>`; renderTotals(null); return; }
       w.innerHTML = `
         <div class="c-head">
           <div>
-            <span class="eyebrow">${esc(c.status || 'Intake')}${c.location ? ' / ' + esc(c.location) : ''}</span>
             <h1>${esc(c.name)}</h1>
-            <div class="c-meta"><span>${esc(c.email || '')}</span><span>${esc(c.phone || '')}</span><span>${esc(c.household || '')}</span></div>
+            <div class="c-meta"><span>${esc(c.status || 'Intake')}</span><span>${esc(c.location || '')}</span><span>${esc(c.household || '')}</span><span>${esc(c.email || '')}</span><span>${esc(c.phone || '')}</span></div>
             ${c.notes ? `<p class="c-notes">${esc(c.notes)}</p>` : ''}
           </div>
-          <div class="c-actions"><button class="btn" type="button" id="edit-c">Edit details</button></div>
+          <button class="btn" type="button" id="edit-c">Edit details</button>
         </div>
-        <div class="totals" id="totals"></div>
 
-        <div class="sec-title"><h2><small>01</small>Gear package</h2><span class="hint">Click an item to add or remove it. You can also drag it across.</span></div>
         <div class="cols">
-          <div class="panel">
-            <div class="panel-head"><span class="lbl">Full catalog</span><input class="inp" type="search" id="gsearch" placeholder="Filter gear" aria-label="Filter gear" value="${esc(catQuery)}"></div>
+          <div>
+            <div class="colhead"><span class="lbl">Catalog — click to add</span><input class="inp" type="search" id="gsearch" placeholder="Filter gear" aria-label="Filter gear" value="${esc(catQuery)}"></div>
             <div id="catalog"></div>
           </div>
-          <div class="panel sticky">
-            <div class="panel-head"><span class="lbl">Their package</span><span class="lbl" id="pk-count"></span></div>
-            <div class="scroll"><ul class="pk" id="package"></ul></div>
-            <div class="pk-foot"><span>Unit price = client price per item. Blank uses the catalog price.</span></div>
+          <div class="side">
+            <h2 class="h2"><span>Their package</span><span class="sub" id="pk-count"></span></h2>
+            <ul class="pk" id="package"></ul>
+            <p class="hint">Price box = client price per unit. Leave blank to use the catalog price.</p>
           </div>
         </div>
 
-        <div class="sec-title"><h2><small>02</small>Training path</h2><span class="hint">Drag to set the order they work through it.</span></div>
         <div class="cols">
-          <div class="panel"><div class="panel-head"><span class="lbl">Their sequence</span><span class="lbl" id="tl-count"></span></div><ol class="tl" id="tpath"></ol></div>
-          <div class="panel lib"><div class="panel-head"><span class="lbl">Module library</span><a class="adm-link" href="training.html">Manage modules</a></div><ul class="tl" id="tlib"></ul></div>
+          <div><h2 class="h2"><span>Training path</span><span class="sub" id="tl-count"></span></h2><ol class="tl" id="tpath"></ol><p class="hint">Drag ⋮⋮ to set the order.</p></div>
+          <div class="lib"><h2 class="h2"><span>Module library</span><a class="sub" href="training.html">manage</a></h2><ul class="tl" id="tlib"></ul></div>
         </div>`;
       document.getElementById('edit-c').addEventListener('click', () => openCustomer(c));
       const gs = document.getElementById('gsearch');
@@ -313,14 +285,14 @@
         if (!items.length) return '';
         const nOn = items.filter(g => inPkg(c, g.id)).length;
         const open = q || !openCats || openCats[cat.id || 'none'] !== false;
-        return `<details class="cat" data-cat="${cat.id || 'none'}" ${open ? 'open' : ''}><summary><span class="t">${esc(cat.name)}</span><span class="n">${nOn}/${items.length}</span></summary>
+        return `<details class="cat" data-cat="${cat.id || 'none'}" ${open ? 'open' : ''}><summary><h3 class="h2"><span class="t">${esc(cat.name)}</span><span class="sub">${nOn} of ${items.length}</span></h3></summary>
           <ul class="gl" data-cat="${cat.id || 'none'}">${items.map(g => {
             const on = !!inPkg(c, g.id);
             return `<li class="gi ${on ? 'on' : ''}" data-gid="${g.id}" role="button" tabindex="0" aria-pressed="${on}">
               <span class="box" aria-hidden="true"></span>
               ${g.thumb ? `<img class="th" src="${esc(g.thumb)}" alt="" loading="lazy">` : '<span class="th none"></span>'}
               <span><span class="nm">${esc(g.name)}</span><br><span class="sub">${esc(g.source || '')}${g.volume_l ? ` · ${g.volume_est ? '≈' : ''}${g.volume_l} L` : ''}${g.capacity_l ? ` · holds ${g.capacity_l} L` : ''}</span></span>
-              <span class="pr">${money.cad(money.sellCAD(g, S))}<small>cost ${money.cad(money.costCAD(g, S))}</small></span></li>`;
+              <span class="pr">${money.cad(money.sellCAD(g, S))}</span></li>`;
           }).join('')}</ul></details>`;
       }).join('') || '<p class="tl-empty">No gear matches.</p>';
       host.querySelectorAll('details.cat').forEach(d => d.addEventListener('toggle', () => {
@@ -366,10 +338,10 @@
       host.innerHTML = lines.length ? lines.map(l => {
         const g = gearById(l.gear_id), unit = money.sellCAD(g, S, l.sell_cad);
         return `<li class="pi" data-lid="${l.id}">
-          <span><span class="sub">${esc(catName(g.category_id))}</span><br><span class="nm">${esc(g.name)}</span>${g.archived ? ' <span class="sub">· archived</span>' : ''}</span>
+          <span class="nm">${esc(g.name)}${g.archived ? ' <span class="sub">(archived)</span>' : ''}</span>
           <span class="qty"><button type="button" data-q="-1" aria-label="Fewer">−</button><input type="number" min="1" max="99" value="${l.qty}" aria-label="Quantity"><button type="button" data-q="1" aria-label="More">+</button></span>
           <input class="unit ${l.sell_cad != null ? 'custom' : ''}" type="number" step="0.01" min="0" placeholder="${money.sellCAD(g, S).toFixed(2)}" value="${l.sell_cad != null ? l.sell_cad : ''}" aria-label="Unit price for this client (CAD)" title="Client unit price, CAD">
-          <span class="line">${money.cad(unit * l.qty)}<small>cost ${money.cad(money.costCAD(g, S) * l.qty)}</small></span>
+          <span class="line">${money.cad(unit * l.qty)}</span>
           <button class="x" type="button" aria-label="Remove ${esc(g.name)}">×</button></li>`;
       }).join('') : '<li class="pk-empty">Nothing selected yet. Click items in the catalog to add them, or drag them here.</li>';
       Sortable.create(host, {

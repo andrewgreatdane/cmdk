@@ -141,10 +141,11 @@
   function header(active, user) {
     const nav = [['customers.html', 'Customers'], ['gear.html', 'Master gear'], ['training.html', 'Training']];
     const h = document.createElement('header'); h.className = 'adm-header';
+    const title = { 'customers.html': 'Customers', 'gear.html': 'Master Gear', 'training.html': 'Training' }[active] || 'Admin';
     h.innerHTML = `
-      <a href="../index.html" class="adm-brand" aria-label="Resilience Systems site"><span class="adm-emblem" aria-hidden="true">R<span>/</span></span><span class="adm-brandname">Resilience<br>Systems</span></a>
-      <nav class="adm-nav" aria-label="Admin">${nav.map(([href, label], i) => `<a href="${href}" ${active === href ? 'aria-current="page"' : ''}><small>0${i + 1}</small>${label}</a>`).join('')}</nav>
-      <div class="adm-user">${LIVE ? '' : '<span class="adm-demo" title="Data is stored in this browser only">Demo</span>'}<span>${esc(user && user.name || '')}</span><button type="button" class="adm-link" id="adm-signout">Sign out</button></div>`;
+      <div class="adm-top"><a href="../index.html" class="adm-name">Resilience Systems · ${title}<small>Admin</small></a><div class="adm-slot" id="adm-slot"></div></div>
+      <nav class="adm-nav adm-user" aria-label="Admin">${nav.map(([href, label]) => `<a href="${href}" ${active === href ? 'aria-current="page"' : ''}>${label}</a>`).join('')}
+        <span class="sp"></span>${LIVE ? '' : '<span class="adm-demo" title="Data is stored in this browser only">DEMO</span>'}<span class="who">${esc(user && user.name || '')}</span><button type="button" class="adm-link" id="adm-signout">Sign out</button></nav>`;
     document.body.prepend(h);
     h.querySelector('#adm-signout').addEventListener('click', () => auth.signOut());
   }
