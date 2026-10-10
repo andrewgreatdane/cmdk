@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Master Gear List | Resilience Systems Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    :root {
+      --bg: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --ink-3: #7a7a7a;
+      --rule: #000000; --rule-soft: #d9d9d9; --sel: #f2f2f2;
+      --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+      --mono: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.45; }
+    a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+    a:hover { text-decoration-thickness: 2px; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+    [hidden] { display: none !important; }
+
+    .bar { position: sticky; top: 0; z-index: 10; background: var(--bg); border-bottom: 2px solid var(--rule); display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding: 14px 24px; }
+    .bar .name { font-weight: 600; letter-spacing: .02em; }
+    .bar .name small { display: block; font-weight: 400; color: var(--ink-3); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+    .bar .total { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+    .bar .total .lbl { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+    .bar .total .amt { font-family: var(--mono); font-size: 30px; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .bar .total .cnt { font-family: var(--mono); font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+    .bar .rate { font-size: 13px; color: var(--ink-2); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .bar .rate input { font-family: var(--mono); font-size: 13px; width: 5.5em; padding: 3px 6px; border: 1px solid var(--ink); background: var(--bg); }
+    .btn { font-size: 13px; background: none; border: 1px solid var(--ink); padding: 4px 10px; cursor: pointer; }
+    .btn:hover { background: var(--ink); color: var(--bg); }
+    .btn.solid { background: var(--ink); color: var(--bg); }
+    .btn.solid:hover { background: var(--ink-2); }
+    .btn.danger:hover { background: #a3271b; border-color: #a3271b; }
+    .bar .nav { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: 12px; padding-top: 6px; border-top: 1px solid var(--rule-soft); align-items: baseline; }
+    .bar .nav a { color: var(--ink-2); }
+    .bar .nav a[aria-current] { color: var(--ink); font-weight: 600; text-decoration: none; }
+    .bar .nav .sp { flex: 1; }
+    .bar .nav .who { color: var(--ink-3); font-family: var(--mono); }
+    .bar .nav .demo { font-family: var(--mono); font-size: 11px; border: 1px solid var(--ink-3); color: var(--ink-3); padding: 0 5px; }
+
+    main { max-width: 1120px; margin: 0 auto; padding: 24px 24px 80px; }
+    .intro { color: var(--ink-2); max-width: 70ch; margin: 0 0 24px; }
+    .tools { display: flex; gap: 16px; font-size: 12px; margin: 0 0 28px; align-items: center; flex-wrap: wrap; }
+    .tools .lk { background: none; border: 0; padding: 0; color: var(--ink-3); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; font-size: 12px; }
+    .tools .lk:hover { color: var(--ink); }
+    .tools input[type=search] { font-size: 13px; padding: 4px 8px; border: 1px solid var(--rule-soft); min-width: 220px; }
+    .tools input[type=search]:focus { outline: none; border-color: var(--ink); }
+    .tools label { display: inline-flex; gap: 6px; align-items: center; color: var(--ink-2); cursor: pointer; }
+    .tools .sp { flex: 1; }
+
+    section, details.sec { margin: 0 0 40px; }
+    h2 { font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; margin: 0; padding: 0 0 8px; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    h2 .sub { font-family: var(--mono); font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--ink-3); font-size: 12px; font-variant-numeric: tabular-nums; }
+    details > summary { list-style: none; cursor: pointer; user-select: none; }
+    details > summary::-webkit-details-marker { display: none; }
+    details > summary h2::before { content: "+"; font-family: var(--mono); font-size: 14px; width: 1em; flex: none; }
+    details[open] > summary h2::before { content: "\2013"; }
+    details > summary h2 .title { flex: 1; }
+    details > summary:hover h2 .title { text-decoration: underline; text-underline-offset: 3px; }
+    details:not([open]) > summary h2 { border-bottom-color: var(--rule-soft); }
+    .secbar { display: flex; gap: 14px; font-size: 12px; padding: 8px 0 4px; color: var(--ink-3); flex-wrap: wrap; }
+    .secbar button { background: none; border: 0; padding: 0; color: var(--ink-3); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; font-size: 12px; }
+    .secbar button:hover { color: var(--ink); }
+    .secbar button:disabled { opacity: .35; cursor: default; text-decoration: none; }
+
+    table { width: 100%; border-collapse: collapse; }
+    .tablewrap { overflow-x: auto; }
+    tbody.rows { min-height: 40px; }
+    tbody.rows:empty { display: block; min-height: 56px; border-bottom: 1px dashed var(--rule-soft); }
+    tbody.rows:empty::after { content: "Empty. Drag items here by their handle, or add one."; display: block; padding: 18px 8px; color: var(--ink-3); font-size: 13px; }
+    tr.item { border-bottom: 1px solid var(--rule-soft); background: var(--bg); }
+    tr.item:hover { background: #fafafa; }
+    tr.item.arch { color: var(--ink-3); }
+    tr.item.arch img { opacity: .4; }
+    td { padding: 10px 8px; vertical-align: top; }
+    td.hdl { width: 24px; padding-left: 0; padding-right: 0; color: var(--ink-3); font-family: var(--mono); cursor: grab; user-select: none; letter-spacing: -2px; padding-top: 26px; }
+    td.hdl:active { cursor: grabbing; }
+    td.thumb { width: 64px; padding-right: 4px; }
+    td.thumb img { display: block; width: 56px; height: 56px; object-fit: contain; background: #fff; border: 1px solid var(--rule-soft); }
+    td.thumb .nothumb { display: block; width: 56px; height: 56px; border: 1px dashed var(--rule-soft); }
+    td.what .nm { font-weight: 500; }
+    td.what .desc { display: block; color: var(--ink-2); font-size: 13px; max-width: 60ch; }
+    td.what .src { font-size: 12px; color: var(--ink-3); }
+    td.what .src a { color: var(--ink-3); }
+    .tag { display: inline-block; font-family: var(--mono); font-size: 10px; letter-spacing: .08em; border: 1px solid var(--ink-3); color: var(--ink-3); padding: 0 4px; margin-left: 4px; vertical-align: 2px; }
+    td.vol { width: 90px; text-align: right; font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink-2); }
+    td.vol small { display: block; color: var(--ink-3); font-size: 11px; }
+    td.price { width: 150px; text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    td.price .orig { display: block; font-size: 12px; color: var(--ink-3); }
+    td.price .sell { display: block; font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+    td.act { width: 150px; text-align: right; font-size: 12px; white-space: nowrap; }
+    td.act select { font-size: 12px; max-width: 140px; border: 1px solid var(--rule-soft); padding: 2px 4px; background: var(--bg); margin-bottom: 6px; }
+    td.act .lks { display: flex; gap: 10px; justify-content: flex-end; }
+    td.act button { background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; color: var(--ink-2); font-size: 12px; }
+    td.act button:hover { color: var(--ink); }
+    .sortable-ghost { background: var(--sel) !important; opacity: .6; }
+    .note { font-size: 12px; color: var(--ink-3); max-width: 70ch; }
+
+    dialog { border: 2px solid var(--ink); padding: 0; width: min(620px, calc(100vw - 32px)); background: var(--bg); color: var(--ink); }
+    dialog::backdrop { background: rgba(0,0,0,.35); }
+    .dh { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 20px; border-bottom: 1px solid var(--rule); }
+    .dh h3 { margin: 0; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; }
+    .db { padding: 16px 20px; display: grid; gap: 12px; }
+    .df { padding: 12px 20px; border-top: 1px solid var(--rule-soft); display: flex; gap: 8px; justify-content: flex-end; }
+    .df .sp { flex: 1; }
+    .f { display: grid; gap: 4px; font-size: 12px; color: var(--ink-2); }
+    .f input, .f select, .f textarea { font-size: 14px; padding: 6px 8px; border: 1px solid var(--rule-soft); background: var(--bg); color: var(--ink); border-radius: 0; }
+    .f input:focus, .f select:focus, .f textarea:focus { outline: none; border-color: var(--ink); }
+    .f textarea { min-height: 64px; resize: vertical; }
+    .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .chk { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--ink-2); }
+    .chk input { accent-color: #000; }
+    .imgprev { display: flex; gap: 12px; align-items: center; }
+    .imgprev img { width: 56px; height: 56px; object-fit: contain; border: 1px solid var(--rule-soft); }
+
+    #rs-toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; background: #000; color: #fff; padding: 8px 14px; font-size: 13px; z-index: 100; transition: opacity .2s, transform .2s; pointer-events: none; }
+    #rs-toast.show { opacity: 1; transform: translate(-50%, 0); }
+    #rs-toast.bad { background: #a3271b; }
+
+    @media (max-width: 720px) {
+      .bar { padding: 10px 16px; }
+      .bar .total .amt { font-size: 24px; }
+      main { padding: 16px 16px 60px; }
+      td.what .desc { max-width: none; }
+      td.vol { display: none; }
+      td.act select { max-width: 110px; }
+      .g2, .g3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bar">
+    <div class="name">Resilience Systems · Master Gear<small>Catalog editor</small></div>
+    <div class="total">
+      <span class="lbl">Active catalog</span>
+      <span class="amt" id="total">$0.00</span>
+      <span class="cnt" id="count">0 items</span>
+    </div>
+    <div class="rate">
+      <label for="rate">USD→CAD</label><input id="rate" type="number" step="0.01" min="0.5" max="3">
+      <label for="markup">Default markup ×</label><input id="markup" type="number" step="0.05" min="0.5" max="10">
+    </div>
+    <div class="nav">
+      <a href="customers.html">Customers</a><a href="gear.html" aria-current="page">Master gear</a><a href="training.html">Training</a>
+      <span class="sp"></span><span id="demo"></span><span class="who" id="who"></span><a href="#" id="signout">Sign out</a>
+    </div>
+  </div>
+
+  <main>
+    <p class="intro">Every item we can put in a client package, grouped by capability. Drag the handle to reorder or to move an item into another section, or use the "Move to" menu. Archived items stay on existing client packages but drop out of the catalog.</p>
+    <div class="tools">
+      <button type="button" class="lk" id="openall">Expand all</button><button type="button" class="lk" id="closeall">Collapse all</button>
+      <input type="search" id="q" placeholder="Search gear" aria-label="Search gear">
+      <label><input type="checkbox" id="showarch"> Show archived</label>
+      <span class="sp"></span>
+      <button type="button" class="btn" id="addcat">+ New capability</button>
+      <button type="button" class="btn solid" id="additem">+ New item</button>
+    </div>
+    <div id="sections"></div>
+    <p class="note">Cost is what we pay, in the supplier's currency; USD is converted at the rate above. Client price defaults to cost × markup unless an item has its own price set. Volumes marked ≈ are estimates. EST = supplier price couldn't be confirmed.</p>
+  </main>
+
+  <dialog id="idlg">
+    <form method="dialog" id="iform">
+      <div class="dh"><h3 id="idlg-t">Item</h3><button class="btn" value="cancel" formnovalidate>Close</button></div>
+      <div class="db">
+        <label class="f">Name<input name="name" required></label>
+        <label class="f">Description<textarea name="description"></textarea></label>
+        <div class="g2">
+          <label class="f">Capability<select name="category_id"></select></label>
+          <label class="f">Source (shown as link text)<input name="source" placeholder="pelican.com"></label>
+        </div>
+        <label class="f">Product URL<input name="url" type="url" placeholder="https://"></label>
+        <div class="g3">
+          <label class="f">Our cost<input name="price" type="number" step="0.01" min="0" required></label>
+          <label class="f">Currency<select name="currency"><option>CAD</option><option>USD</option></select></label>
+          <label class="f">Client price, CAD<input name="sell_cad" type="number" step="0.01" min="0" placeholder="cost × markup"></label>
+        </div>
+        <div class="g3">
+          <label class="f">Packed volume (L)<input name="volume_l" type="number" step="0.01" min="0"></label>
+          <label class="f">Holds (L) — cases/bags<input name="capacity_l" type="number" step="0.01" min="0"></label>
+          <div class="f">&nbsp;<label class="chk"><input type="checkbox" name="volume_est"> Volume is an estimate</label><label class="chk"><input type="checkbox" name="price_est"> Price is an estimate</label></div>
+        </div>
+        <div class="imgprev"><img id="iprev" alt="" hidden><label class="f" style="flex:1">Image URL<input name="thumb" placeholder="https://… (optional)"></label></div>
+        <label class="chk"><input type="checkbox" name="archived"> Archived (hidden from the catalog)</label>
+      </div>
+      <div class="df"><button type="button" class="btn danger" id="idel">Delete item</button><span class="sp"></span><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn solid" value="save">Save</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="cdlg">
+    <form method="dialog" id="cform">
+      <div class="dh"><h3 id="cdlg-t">Capability</h3><button class="btn" value="cancel" formnovalidate>Close</button></div>
+      <div class="db"><label class="f">Name<input name="name" required placeholder="e.g. Water, Medical, Faraday"></label></div>
+      <div class="df"><button type="button" class="btn danger" id="cdel">Delete capability</button><span class="sp"></span><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn solid" value="save">Save</button></div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+  <script src="config.js"></script>
+  <script src="seed.js"></script>
+  <script src="core.js"></script>
+  <script>
+  (async function () {
+    const { store, money, esc, toast } = RS;
+    const user = await RS.auth.guard();
+    document.getElementById('who').textContent = user.name || user.email;
+    if (!RS.live) document.getElementById('demo').innerHTML = '<span class="demo" title="Data is stored in this browser only">DEMO</span>';
+    document.getElementById('signout').addEventListener('click', e => { e.preventDefault(); RS.auth.signOut(); });
+    if (await RS.ensureSeed()) toast('Starter catalog loaded');
+
+    let S, cats, gear, closed = {};
+    try { closed = JSON.parse(localStorage.getItem('rs-gear-closed') || '{}'); } catch (e) {}
+    const $ = s => document.querySelector(s);
+
+    async function load() {
+      [S, cats, gear] = await Promise.all([RS.settings(), store.list('categories'), store.list('gear')]);
+      cats.sort((a, b) => a.sort - b.sort);
+      gear.sort((a, b) => a.sort - b.sort);
+      $('#rate').value = S.rate; $('#markup').value = S.markup;
+    }
+
+    function groups() { const g = cats.map(c => ({ ...c })); if (gear.some(x => !x.category_id || !cats.some(c => c.id === x.category_id))) g.push({ id: 'none', name: 'Unsorted', sort: 9999 }); return g; }
+    const inCat = (g, cid) => cid === 'none' ? (!g.category_id || !cats.some(c => c.id === g.category_id)) : g.category_id === cid;
+
+    function render() {
+      const q = $('#q').value.trim().toLowerCase(), showArch = $('#showarch').checked;
+      const host = $('#sections'); host.innerHTML = '';
+      const gs = groups();
+      gs.forEach((cat, ci) => {
+        const all = gear.filter(g => inCat(g, cat.id));
+        const items = all.filter(g => (showArch || !g.archived) && (!q || (g.name + ' ' + (g.description || '') + ' ' + (g.source || '')).toLowerCase().includes(q)));
+        if (q && !items.length) return;
+        const active = all.filter(g => !g.archived);
+        const sum = active.reduce((s, g) => s + money.costCAD(g, S), 0);
+        const d = document.createElement('details');
+        d.className = 'sec'; d.dataset.cat = cat.id; d.open = !!q || !closed[cat.id];
+        const isReal = cat.id !== 'none';
+        d.innerHTML = `<summary><h2><span class="title">${esc(cat.name)}</span><span class="sub">${active.length} item${active.length === 1 ? '' : 's'} · ${money.cad(sum)}${all.length > active.length ? ` · ${all.length - active.length} archived` : ''}</span></h2></summary>
+          <div class="secbar">${isReal ? `<button type="button" data-act="additem">+ Add item</button><button type="button" data-act="rename">Rename</button><button type="button" data-act="up" ${ci === 0 ? 'disabled' : ''}>Move up</button><button type="button" data-act="down" ${ci >= cats.length - 1 ? 'disabled' : ''}>Move down</button>` : '<span>Items without a capability. Move them into a section.</span>'}</div>
+          <div class="tablewrap"><table><tbody class="rows" data-cat="${cat.id}">${items.map(row).join('')}</tbody></table></div>`;
+        host.appendChild(d);
+      });
+      host.querySelectorAll('tbody.rows').forEach(tb => Sortable.create(tb, {
+        group: 'gear', handle: '.hdl', draggable: 'tr.item', animation: 150, onEnd: onDrop,
+      }));
+      const active = gear.filter(g => !g.archived);
+      $('#total').textContent = money.cad(active.reduce((s, g) => s + money.costCAD(g, S), 0));
+      $('#count').textContent = `${active.length} items · ${cats.length} capabilities · cost, CAD`;
+    }
+
+    function row(g) {
+      const opts = cats.map(c => `<option value="${c.id}" ${c.id === g.category_id ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
+      const sell = money.sellCAD(g, S);
+      return `<tr class="item ${g.archived ? 'arch' : ''}" data-id="${g.id}">
+        <td class="hdl" title="Drag to reorder or move" aria-hidden="true">⋮⋮</td>
+        <td class="thumb">${g.thumb ? `<img src="${esc(g.thumb)}" alt="" width="56" height="56" loading="lazy">` : '<span class="nothumb"></span>'}</td>
+        <td class="what"><span class="nm">${esc(g.name)}</span>${g.archived ? '<span class="tag">ARCHIVED</span>' : ''}<span class="desc">${esc(g.description || '')}</span>${g.url ? `<span class="src"><a href="${esc(g.url)}" target="_blank" rel="noopener">${esc(g.source || 'link')}</a></span>` : `<span class="src">${esc(g.source || '')}</span>`}</td>
+        <td class="vol">${Number(g.volume_l) > 0 ? (g.volume_est ? '≈' : '') + Number(g.volume_l) + ' L' : '—'}${g.capacity_l ? `<small>holds ${Number(g.capacity_l)} L</small>` : ''}</td>
+        <td class="price">${money.cad(money.costCAD(g, S))}${g.price_est ? '<span class="tag">EST</span>' : ''}${g.currency === 'USD' ? `<span class="orig">${money.cad(g.price)} USD</span>` : '<span class="orig">CAD</span>'}<span class="sell">client ${money.cad(sell)}${g.sell_cad != null && g.sell_cad !== '' ? ' (set)' : ''}</span></td>
+        <td class="act"><select data-move aria-label="Move to capability">${g.category_id && cats.some(c => c.id === g.category_id) ? '' : '<option value="" selected>Unsorted</option>'}${opts}</select>
+          <div class="lks"><button type="button" data-edit>Edit</button><button type="button" data-arch>${g.archived ? 'Restore' : 'Archive'}</button></div></td></tr>`;
+    }
+
+    async function onDrop(evt) {
+      // renumber every list touched by the drag and persist category + sort
+      const lists = new Set([evt.from, evt.to]);
+      for (const tb of lists) {
+        const cid = tb.dataset.cat === 'none' ? null : tb.dataset.cat;
+        const ids = [...tb.querySelectorAll('tr.item')].map(tr => tr.dataset.id);
+        for (let i = 0; i < ids.length; i++) {
+          const g = gear.find(x => x.id === ids[i]);
+          const patch = {};
+          if (g.sort !== i) patch.sort = i;
+          if ((g.category_id || null) !== cid) patch.category_id = cid;
+          if (Object.keys(patch).length) { Object.assign(g, patch); await store.update('gear', g.id, patch); }
+        }
+      }
+      gear.sort((a, b) => a.sort - b.sort);
+      if (evt.from !== evt.to) toast('Moved');
+      render();
+    }
+
+    /* row actions */
+    $('#sections').addEventListener('change', async e => {
+      if (!e.target.matches('[data-move]')) return;
+      const g = gear.find(x => x.id === e.target.closest('tr').dataset.id);
+      const cid = e.target.value || null;
+      const max = Math.max(-1, ...gear.filter(x => x.category_id === cid).map(x => x.sort));
+      Object.assign(g, { category_id: cid, sort: max + 1 });
+      await store.update('gear', g.id, { category_id: cid, sort: max + 1 });
+      gear.sort((a, b) => a.sort - b.sort);
+      toast('Moved to ' + ((cats.find(c => c.id === cid) || {}).name || 'Unsorted'));
+      render();
+    });
+    $('#sections').addEventListener('click', async e => {
+      const tr = e.target.closest('tr.item');
+      if (tr && e.target.closest('[data-edit]')) return openItem(gear.find(x => x.id === tr.dataset.id));
+      if (tr && e.target.closest('[data-arch]')) {
+        const g = gear.find(x => x.id === tr.dataset.id); g.archived = !g.archived;
+        await store.update('gear', g.id, { archived: g.archived }); toast(g.archived ? 'Archived' : 'Restored'); return render();
+      }
+      const b = e.target.closest('.secbar button'); if (!b) return;
+      const cid = b.closest('details').dataset.cat, cat = cats.find(c => c.id === cid);
+      if (b.dataset.act === 'additem') return openItem(null, cid);
+      if (b.dataset.act === 'rename') return openCat(cat);
+      if (b.dataset.act === 'up' || b.dataset.act === 'down') {
+        const i = cats.indexOf(cat), j = b.dataset.act === 'up' ? i - 1 : i + 1;
+        if (j < 0 || j >= cats.length) return;
+        [cats[i], cats[j]] = [cats[j], cats[i]];
+        for (let k = 0; k < cats.length; k++) if (cats[k].sort !== k) { cats[k].sort = k; await store.update('categories', cats[k].id, { sort: k }); }
+        render();
+      }
+    });
+
+    /* item dialog */
+    const idlg = $('#idlg'), iform = $('#iform'); let editing = null;
+    function openItem(g, cid) {
+      editing = g; iform.reset();
+      $('#idlg-t').textContent = g ? 'Edit item' : 'New item';
+      $('#idel').hidden = !g;
+      iform.elements.category_id.innerHTML = cats.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+      const v = g || { category_id: cid || (cats[0] && cats[0].id), currency: 'CAD' };
+      for (const k of ['name', 'description', 'source', 'url', 'price', 'currency', 'sell_cad', 'volume_l', 'capacity_l', 'thumb']) if (iform.elements[k]) iform.elements[k].value = v[k] != null ? v[k] : '';
+      iform.elements.category_id.value = v.category_id || '';
+      for (const k of ['volume_est', 'price_est', 'archived']) iform.elements[k].checked = !!v[k];
+      preview(); idlg.showModal(); iform.elements.name.focus();
+    }
+    function preview() { const u = iform.elements.thumb.value.trim(), im = $('#iprev'); im.hidden = !u; if (u) im.src = u; }
+    iform.elements.thumb.addEventListener('input', preview);
+    $('#additem').addEventListener('click', () => openItem(null));
+    idlg.addEventListener('close', async () => {
+      if (idlg.returnValue !== 'save') return;
+      const num = k => iform.elements[k].value === '' ? null : Number(iform.elements[k].value);
+      const data = {
+        name: iform.elements.name.value.trim(), description: iform.elements.description.value.trim() || null,
+        category_id: iform.elements.category_id.value || null, source: iform.elements.source.value.trim() || null, url: iform.elements.url.value.trim() || null,
+        price: num('price') || 0, currency: iform.elements.currency.value, sell_cad: num('sell_cad'),
+        volume_l: num('volume_l'), capacity_l: num('capacity_l'), thumb: iform.elements.thumb.value.trim() || null,
+        volume_est: iform.elements.volume_est.checked, price_est: iform.elements.price_est.checked, archived: iform.elements.archived.checked,
+      };
+      if (!data.name) return;
+      if (editing) { Object.assign(editing, await store.update('gear', editing.id, data)); toast('Saved'); }
+      else {
+        data.sort = Math.max(-1, ...gear.filter(x => x.category_id === data.category_id).map(x => x.sort)) + 1;
+        gear.push(await store.insert('gear', data)); toast('Item added');
+      }
+      gear.sort((a, b) => a.sort - b.sort); render();
+    });
+    $('#idel').addEventListener('click', async () => {
+      if (!editing) return;
+      if (!confirm(`Delete "${editing.name}" for good? It will also be removed from any client package. Archive instead to keep history.`)) return;
+      await store.remove('gear', editing.id); gear = gear.filter(x => x.id !== editing.id);
+      idlg.close('cancel'); toast('Deleted'); render();
+    });
+
+    /* capability dialog */
+    const cdlg = $('#cdlg'), cform = $('#cform'); let editingCat = null;
+    function openCat(c) {
+      editingCat = c || null; cform.reset();
+      $('#cdlg-t').textContent = c ? 'Rename capability' : 'New capability';
+      $('#cdel').hidden = !c; if (c) cform.elements.name.value = c.name;
+      cdlg.showModal(); cform.elements.name.focus();
+    }
+    $('#addcat').addEventListener('click', () => openCat(null));
+    cdlg.addEventListener('close', async () => {
+      if (cdlg.returnValue !== 'save') return;
+      const name = cform.elements.name.value.trim(); if (!name) return;
+      if (editingCat) { editingCat.name = name; await store.update('categories', editingCat.id, { name }); toast('Renamed'); }
+      else { const c = await store.insert('categories', { name, sort: cats.length }); cats.push(c); toast('Capability added'); setTimeout(() => { const d = document.querySelector(`details[data-cat="${c.id}"]`); if (d) d.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50); }
+      render();
+    });
+    $('#cdel').addEventListener('click', async () => {
+      if (!editingCat) return;
+      const n = gear.filter(g => g.category_id === editingCat.id).length;
+      if (!confirm(n ? `Delete "${editingCat.name}"? Its ${n} item${n === 1 ? '' : 's'} will move to Unsorted.` : `Delete "${editingCat.name}"?`)) return;
+      await store.remove('categories', editingCat.id);
+      cats = cats.filter(c => c.id !== editingCat.id);
+      gear.forEach(g => { if (g.category_id === editingCat.id) g.category_id = null; });
+      cdlg.close('cancel'); toast('Capability deleted'); render();
+    });
+
+    /* bar + tools */
+    $('#rate').addEventListener('change', async e => { const r = parseFloat(e.target.value); if (r > 0) { S.rate = r; await store.setSetting('usd_cad', r); render(); toast('Rate saved'); } });
+    $('#markup').addEventListener('change', async e => { const r = parseFloat(e.target.value); if (r > 0) { S.markup = r; await store.setSetting('markup', r); render(); toast('Markup saved'); } });
+    $('#q').addEventListener('input', render);
+    $('#showarch').addEventListener('change', render);
+    document.addEventListener('toggle', e => {
+      const d = e.target; if (!(d instanceof HTMLDetailsElement) || !d.classList.contains('sec') || $('#q').value) return;
+      if (d.open) delete closed[d.dataset.cat]; else closed[d.dataset.cat] = true;
+      try { localStorage.setItem('rs-gear-closed', JSON.stringify(closed)); } catch (err) {}
+    }, true);
+    $('#openall').addEventListener('click', () => document.querySelectorAll('details.sec').forEach(d => (d.open = true)));
+    $('#closeall').addEventListener('click', () => document.querySelectorAll('details.sec').forEach(d => (d.open = false)));
+
+    await load(); render();
+  })();
+  </script>
+</body>
+</html>

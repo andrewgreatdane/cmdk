@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin Sign In | Resilience Systems</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;500;600&family=Geist:wght@300;400;500;600&family=Space+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+  <style>
+    body { min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; position: relative; overflow: hidden; }
+    .orb { position: absolute; width: 640px; height: 640px; border-radius: 50%; background: radial-gradient(circle, rgba(229,230,231,.07), transparent 65%); top: -220px; right: -180px; pointer-events: none; }
+    .card { position: relative; width: min(420px, 100%); border: 1px solid var(--line); background: rgba(16,18,20,.8); backdrop-filter: blur(10px); }
+    .card-head { padding: 28px 28px 22px; border-bottom: 1px solid var(--line); }
+    .card-head .adm-brand { margin-bottom: 28px; }
+    h1 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 44px; line-height: .95; letter-spacing: .01em; text-transform: uppercase; }
+    h1 .outline { color: transparent; -webkit-text-stroke: 1px var(--paper); display: block; }
+    form { padding: 24px 28px 28px; display: grid; gap: 16px; }
+    .who { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .who label { border: 1px solid var(--line-2); padding: 14px 10px; text-align: center; cursor: pointer; font-size: 12px; transition: border-color .2s, background .2s; }
+    .who input { position: absolute; opacity: 0; pointer-events: none; }
+    .who input:checked + span { color: #fff; }
+    .who label:has(input:checked) { border-color: var(--paper); background: var(--panel-2); }
+    .who label:hover { border-color: var(--paper); }
+    .err { color: #e3a194; font-size: 12px; min-height: 18px; margin: 0; }
+    .note { font-size: 11px; color: var(--muted); margin: 0; }
+    .btn-solid { justify-content: space-between; min-height: 50px; }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  </style>
+</head>
+<body>
+  <div class="orb" aria-hidden="true"></div>
+  <main class="card">
+    <div class="card-head">
+      <a href="../index.html" class="adm-brand" aria-label="Back to the site"><span class="adm-emblem" aria-hidden="true">R<span>/</span></span><span class="adm-brandname">Resilience<br>Systems</span></a>
+      <p class="eyebrow" style="margin:0 0 10px">Restricted</p>
+      <h1>Admin<span class="outline">Access</span></h1>
+    </div>
+
+    <form id="demo-form" hidden>
+      <span class="lbl">Sign in as</span>
+      <div class="who" id="who"></div>
+      <p class="note">Demo mode. Data lives in this browser only until the database is connected.</p>
+      <p class="err" id="demo-err"></p>
+      <button class="btn btn-solid" type="submit">Enter <span aria-hidden="true">→</span></button>
+    </form>
+
+    <form id="live-form" hidden>
+      <label class="field"><span class="lbl">Email</span><input type="email" id="email" autocomplete="username" required></label>
+      <label class="field"><span class="lbl">Password</span><input type="password" id="password" autocomplete="current-password"></label>
+      <p class="err" id="live-err"></p>
+      <button class="btn btn-solid" type="submit">Sign in <span aria-hidden="true">→</span></button>
+      <div class="row"><span class="note">First time, or forgot it?</span><button type="button" class="adm-link" id="send-link">Email me a sign-in link</button></div>
+    </form>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="config.js"></script>
+  <script src="core.js"></script>
+  <script>
+    (async function () {
+      const { auth, live, esc } = RS;
+      const u = await auth.current();
+      if (u && !u.denied) { location.href = 'customers.html'; return; }
+      if (!live) {
+        const f = document.getElementById('demo-form'); f.hidden = false;
+        document.getElementById('who').innerHTML = (RS_CONFIG.ADMINS || []).map((a, i) =>
+          `<label><input type="radio" name="who" value="${esc(a.email)}" ${i === 0 ? 'checked' : ''}><span>${esc(a.name)}</span></label>`).join('');
+        f.addEventListener('submit', async e => {
+          e.preventDefault();
+          const v = f.querySelector('input[name=who]:checked'); if (!v) return;
+          await auth.signIn(v.value); location.href = 'customers.html';
+        });
+        return;
+      }
+      const f = document.getElementById('live-form'); f.hidden = false;
+      const err = document.getElementById('live-err');
+      if (new URLSearchParams(location.search).get('denied')) err.textContent = 'That account is not on the admin list.';
+      f.addEventListener('submit', async e => {
+        e.preventDefault(); err.textContent = '';
+        const email = f.elements.email.value.trim(), pw = f.elements.password.value;
+        if (!pw) { err.textContent = 'Enter your password, or use the sign-in link.'; return; }
+        try { await auth.signIn(email, pw); location.href = 'customers.html'; }
+        catch (x) { err.textContent = x.message || 'Sign in failed.'; }
+      });
+      document.getElementById('send-link').addEventListener('click', async () => {
+        err.textContent = '';
+        const email = f.elements.email.value.trim();
+        if (!email) { err.textContent = 'Enter your email first.'; return; }
+        try { await auth.sendLink(email); err.style.color = 'var(--muted)'; err.textContent = 'Check your inbox for the sign-in link.'; }
+        catch (x) { err.style.color = ''; err.textContent = x.message; }
+      });
+    })();
+  </script>
+</body>
+</html>

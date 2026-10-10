@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Customers | Resilience Systems Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;500;600&family=Geist:wght@300;400;500;600&family=Space+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+  <style>
+    .wrap { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 72px); }
+    /* client list */
+    .clients { border-right: 1px solid var(--line); padding: 24px 0; position: sticky; top: 72px; height: calc(100vh - 72px); overflow: auto; }
+    .clients-head { padding: 0 20px 16px; display: grid; gap: 12px; }
+    .clients-head .row { display: flex; justify-content: space-between; align-items: baseline; }
+    .clients-head h2 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 26px; text-transform: uppercase; letter-spacing: .02em; }
+    .clist { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+    .clist button { width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); padding: 14px 20px; cursor: pointer; display: grid; gap: 3px; transition: background .2s; }
+    .clist button:hover { background: var(--panel); }
+    .clist button[aria-current] { background: var(--panel-2); box-shadow: inset 2px 0 0 var(--paper); }
+    .clist .nm { font-size: 13px; font-weight: 500; }
+    .clist .mt { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+    .clist .empty { padding: 20px; color: var(--muted); font-size: 12px; }
+
+    /* workspace */
+    .work { padding: 32px 40px 80px; min-width: 0; }
+    .blank { height: 60vh; display: grid; place-items: center; text-align: center; color: var(--muted); }
+    .blank h2 { font-family: var(--display); font-weight: 500; font-size: 40px; text-transform: uppercase; color: transparent; -webkit-text-stroke: 1px var(--line-2); margin: 0 0 8px; }
+    .c-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+    .c-head h1 { margin: 6px 0 8px; font-family: var(--display); font-weight: 500; font-size: clamp(36px, 5vw, 56px); line-height: .95; text-transform: uppercase; letter-spacing: .01em; }
+    .c-meta { font-size: 12px; color: #b2b7bb; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+    .c-meta span:empty { display: none; }
+    .c-notes { margin: 10px 0 0; font-size: 12px; color: var(--muted); max-width: 70ch; white-space: pre-wrap; }
+    .c-actions { display: flex; gap: 8px; }
+
+    .totals { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--line); margin: 24px 0 40px; position: sticky; top: 72px; z-index: 5; background: rgba(8,9,10,.94); backdrop-filter: blur(12px); }
+    .tot { padding: 14px 18px; border-right: 1px solid var(--line); min-width: 0; }
+    .tot:last-child { border-right: 0; }
+    .tot .v { font-family: var(--display); font-size: 28px; font-weight: 500; line-height: 1.1; margin-top: 4px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .tot .s { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .bar { height: 3px; background: var(--line); margin-top: 8px; }
+    .bar i { display: block; height: 100%; background: var(--paper); max-width: 100%; transition: width .3s; }
+    .bar.over i { background: #c96a5a; }
+
+    .sec-title { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 14px; gap: 16px; flex-wrap: wrap; }
+    .sec-title h2 { margin: 0; font-family: var(--label); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; font-weight: 500; }
+    .sec-title h2 small { color: var(--dim); margin-right: 10px; }
+    .hint { font-size: 11px; color: var(--muted); }
+
+    .cols { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; margin-bottom: 56px; }
+    .panel { border: 1px solid var(--line); background: var(--panel); min-width: 0; }
+    .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+    .panel-head .inp { max-width: 220px; padding: 7px 10px; font-size: 12px; }
+    .sticky { position: sticky; top: 190px; max-height: calc(100vh - 210px); display: flex; flex-direction: column; }
+    .sticky .scroll { overflow: auto; }
+
+    /* catalog */
+    .cat > summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--line); font-family: var(--label); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #b2b7bb; user-select: none; }
+    .cat > summary::-webkit-details-marker { display: none; }
+    .cat > summary::before { content: '+'; width: 16px; color: var(--dim); }
+    .cat[open] > summary::before { content: '–'; }
+    .cat > summary .t { flex: 1; }
+    .cat > summary .n { color: var(--dim); letter-spacing: .04em; }
+    .cat > summary:hover { color: #fff; }
+    .gl { list-style: none; margin: 0; padding: 0; }
+    .gi { display: grid; grid-template-columns: 22px 40px 1fr auto; gap: 12px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); cursor: pointer; transition: background .15s, box-shadow .15s; user-select: none; }
+    .gi:hover { background: var(--panel-2); }
+    .gi .box { width: 16px; height: 16px; border: 1px solid var(--line-2); display: grid; place-items: center; font-size: 11px; line-height: 1; color: var(--ink); }
+    .gi.on { background: var(--gold-soft); box-shadow: inset 2px 0 0 var(--gold); }
+    .gi.on .box { background: var(--gold); border-color: var(--gold); }
+    .gi.on .box::after { content: '✓'; }
+    .th { width: 40px; height: 40px; background: #fff; display: block; object-fit: contain; }
+    .th.none { background: var(--panel-2); border: 1px dashed var(--line-2); }
+    .gi .nm { font-size: 13px; line-height: 1.3; }
+    .gi .sub { font-size: 11px; color: var(--muted); }
+    .gi .pr { font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .gi .pr small { display: block; color: var(--dim); font-size: 10px; }
+    .gi.arch { opacity: .5; }
+
+    /* package */
+    .pk { list-style: none; margin: 0; padding: 0; min-height: 120px; }
+    .pk-empty { padding: 32px 20px; text-align: center; color: var(--muted); font-size: 12px; border: 1px dashed var(--line-2); margin: 16px; }
+    .pi { display: grid; grid-template-columns: minmax(0,1fr) auto auto auto auto; gap: 10px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+    .pi .nm { font-size: 12.5px; line-height: 1.3; }
+    .pi .sub { font-size: 10px; color: var(--dim); font-family: var(--label); letter-spacing: .1em; text-transform: uppercase; }
+    .qty { display: inline-flex; border: 1px solid var(--line-2); }
+    .qty button { width: 24px; background: none; border: 0; cursor: pointer; color: var(--muted); }
+    .qty button:hover { color: #fff; }
+    .qty input { width: 30px; text-align: center; background: none; border: 0; border-inline: 1px solid var(--line); padding: 3px 0; font-size: 12px; -moz-appearance: textfield; }
+    .qty input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .unit { width: 84px; background: var(--ink); border: 1px solid var(--line); padding: 4px 6px; font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+    .unit:focus { outline: none; border-color: var(--paper); }
+    .unit.custom { border-color: var(--gold); }
+    .line { text-align: right; font-size: 12px; min-width: 76px; font-variant-numeric: tabular-nums; }
+    .line small { display: block; color: var(--dim); font-size: 10px; }
+    .x { background: none; border: 0; color: var(--dim); cursor: pointer; font-size: 16px; padding: 0 0 0 4px; line-height: 1; }
+    .x:hover { color: #e3a194; }
+    .pk-foot { padding: 12px 16px; display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); border-top: 1px solid var(--line); }
+    .pk.drop-hover { background: var(--gold-soft); }
+
+    /* training */
+    .tl { list-style: none; margin: 0; padding: 0; min-height: 80px; counter-reset: step; }
+    .ti { display: grid; grid-template-columns: auto 34px 1fr auto; gap: 10px; align-items: start; padding: 14px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+    .ti .idx { font-family: var(--display); font-size: 22px; line-height: 1; color: var(--muted); }
+    .ti .nm { font-size: 13px; font-weight: 500; }
+    .ti .ds { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .ti .lk { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; font-size: 11px; }
+    .ti .lk a { color: #b2b7bb; text-decoration: underline; text-underline-offset: 3px; }
+    .ti .lk a:hover { color: #fff; }
+    .ti .dur { font-size: 11px; color: var(--dim); white-space: nowrap; }
+    .lib .ti { grid-template-columns: 1fr auto; cursor: grab; }
+    .addm { background: none; border: 1px solid var(--line-2); color: var(--paper); width: 28px; height: 28px; cursor: pointer; font-size: 16px; line-height: 1; }
+    .addm:hover { border-color: var(--paper); background: var(--paper); color: var(--ink); }
+    .tl-empty { padding: 28px 20px; text-align: center; color: var(--muted); font-size: 12px; }
+
+    @media (max-width: 1100px) { .totals { grid-template-columns: repeat(3, 1fr); } .tot:nth-child(3) { border-right: 0; } .tot:nth-child(n+4) { border-top: 1px solid var(--line); } .sticky { top: 260px; max-height: none; } }
+    @media (max-width: 900px) {
+      .wrap { grid-template-columns: 1fr; }
+      .clients { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); max-height: 300px; }
+      .cols { grid-template-columns: 1fr; }
+      .sticky { position: static; max-height: none; }
+      .totals { position: static; }
+      .work { padding: 24px 16px 60px; }
+    }
+    @media (max-width: 520px) { .totals { grid-template-columns: 1fr 1fr; } .tot { border-right: 0; border-top: 1px solid var(--line); } .tot:first-child, .tot:nth-child(2) { border-top: 0; } .pi { grid-template-columns: minmax(0,1fr) auto auto auto; } .pi .unit { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <aside class="clients" aria-label="Customers">
+      <div class="clients-head">
+        <div class="row"><h2>Customers</h2><span class="lbl" id="ccount"></span></div>
+        <input class="inp" id="csearch" type="search" placeholder="Search customers" aria-label="Search customers">
+        <button class="btn btn-solid" id="new-customer" type="button" style="justify-content:space-between">New customer <span aria-hidden="true">+</span></button>
+      </div>
+      <ul class="clist" id="clist"></ul>
+    </aside>
+
+    <main class="work" id="work">
+      <div class="blank"><div><h2>Select a customer</h2><p>Or add a new one to start building their package.</p></div></div>
+    </main>
+  </div>
+
+  <dialog class="adm-dialog" id="cdlg">
+    <form method="dialog" id="cform">
+      <div class="dlg-head"><h2 id="cdlg-title">Customer</h2><button class="adm-link" value="cancel" formnovalidate>Close</button></div>
+      <div class="dlg-body">
+        <label class="field"><span class="lbl">Name</span><input name="name" required></label>
+        <div class="grid2">
+          <label class="field"><span class="lbl">Email</span><input name="email" type="email"></label>
+          <label class="field"><span class="lbl">Phone</span><input name="phone"></label>
+        </div>
+        <div class="grid2">
+          <label class="field"><span class="lbl">Household</span><input name="household" placeholder="e.g. 2 adults, 2 children, 1 dog"></label>
+          <label class="field"><span class="lbl">Location</span><input name="location"></label>
+        </div>
+        <label class="field"><span class="lbl">Status</span>
+          <select name="status"><option>Intake</option><option>Assessment</option><option>Design</option><option>Proposal</option><option>Active</option><option>Delivered</option><option>Paused</option></select>
+        </label>
+        <label class="field"><span class="lbl">Notes</span><textarea name="notes"></textarea></label>
+      </div>
+      <div class="dlg-foot"><button class="btn btn-danger" type="button" id="cdelete">Delete customer</button><span class="spacer"></span><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn btn-solid" value="save">Save</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="adm-dialog" id="pwdlg">
+    <form method="dialog" id="pwform">
+      <div class="dlg-head"><h2>Set password</h2><button class="adm-link" value="cancel" formnovalidate>Close</button></div>
+      <div class="dlg-body"><label class="field"><span class="lbl">New password (8+ characters)</span><input name="pw" type="password" minlength="8" autocomplete="new-password" required></label></div>
+      <div class="dlg-foot"><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn btn-solid" value="save">Save password</button></div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+  <script src="config.js"></script>
+  <script src="seed.js"></script>
+  <script src="core.js"></script>
+  <script>
+  (async function () {
+    const { store, money, esc, toast } = RS;
+    const user = await RS.auth.guard();
+    RS.header('customers.html', user);
+    if (RS.live) { // let invited admins set a password after using an email link
+      const b = document.createElement('button'); b.className = 'adm-link'; b.type = 'button'; b.textContent = 'Set password';
+      document.querySelector('.adm-user').insertBefore(b, document.getElementById('adm-signout'));
+      b.addEventListener('click', () => { document.getElementById('pwform').reset(); document.getElementById('pwdlg').showModal(); });
+      document.getElementById('pwdlg').addEventListener('close', async e => {
+        if (e.target.returnValue !== 'save') return;
+        try { await RS.auth.setPassword(document.querySelector('#pwform [name=pw]').value); toast('Password saved'); } catch (x) { toast(x.message, true); }
+      });
+    }
+    if (await RS.ensureSeed()) toast('Starter catalog loaded');
+
+    let S, cats, gear, customers, cg, cm, modules;
+    const params = new URLSearchParams(location.search);
+    let currentId = params.get('id');
+    let openCats = null;   // remembers collapsed catalog sections
+    let catQuery = '';
+
+    async function load() {
+      [S, cats, gear, customers, cg, cm, modules] = await Promise.all([
+        RS.settings(), store.list('categories'), store.list('gear'), store.list('customers'),
+        store.list('customer_gear'), store.list('customer_modules'), store.list('modules')]);
+      cats.sort((a, b) => a.sort - b.sort);
+      gear.sort((a, b) => a.sort - b.sort);
+      modules.sort((a, b) => a.sort - b.sort);
+      customers.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    const gearById = id => gear.find(g => g.id === id);
+    const catName = id => (cats.find(c => c.id === id) || {}).name || 'Unsorted';
+
+    /* ---------- client list ---------- */
+    function renderList() {
+      const q = document.getElementById('csearch').value.trim().toLowerCase();
+      const rows = customers.filter(c => !q || [c.name, c.email, c.location, c.status].join(' ').toLowerCase().includes(q));
+      document.getElementById('ccount').textContent = customers.length;
+      document.getElementById('clist').innerHTML = rows.length ? rows.map(c => {
+        const n = cg.filter(x => x.customer_id === c.id).reduce((s, x) => s + x.qty, 0);
+        return `<li><button type="button" data-id="${c.id}" ${c.id === currentId ? 'aria-current="true"' : ''}><span class="nm">${esc(c.name)}</span><span class="mt"><span>${esc(c.status || '')}${c.location ? ' · ' + esc(c.location) : ''}</span><span class="num">${n} items</span></span></button></li>`;
+      }).join('') : `<li class="empty">${customers.length ? 'No match.' : 'No customers yet.'}</li>`;
+    }
+    document.getElementById('csearch').addEventListener('input', renderList);
+    document.getElementById('clist').addEventListener('click', e => {
+      const b = e.target.closest('button[data-id]'); if (!b) return;
+      select(b.dataset.id);
+    });
+    function select(id) {
+      currentId = id;
+      history.replaceState(null, '', id ? '?id=' + id : location.pathname);
+      renderList(); renderWork();
+      if (window.innerWidth < 900) document.getElementById('work').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /* ---------- totals ---------- */
+    function totals(c) {
+      const lines = cg.filter(x => x.customer_id === c.id);
+      let cost = 0, sell = 0, vol = 0, cap = 0, units = 0, est = false;
+      for (const l of lines) {
+        const g = gearById(l.gear_id); if (!g) continue;
+        units += l.qty;
+        cost += money.costCAD(g, S) * l.qty;
+        sell += money.sellCAD(g, S, l.sell_cad) * l.qty;
+        if (g.capacity_l) cap += Number(g.capacity_l) * l.qty;
+        if (g.volume_l) vol += Number(g.volume_l) * l.qty;
+        if (g.volume_est || g.price_est) est = true;
+      }
+      return { lines: lines.length, units, cost, sell, vol, cap, est };
+    }
+    function renderTotals(c) {
+      const t = totals(c), el = document.getElementById('totals'); if (!el) return;
+      const m = t.sell - t.cost, pct = t.sell ? (m / t.sell) * 100 : 0;
+      const usd = n => money.cad(n / S.rate) + ' USD';
+      const fill = t.cap ? Math.min(100, (t.vol / t.cap) * 100) : 0;
+      el.innerHTML = `
+        <div class="tot"><span class="lbl">Items</span><div class="v">${t.units}</div><div class="s">${t.lines} line${t.lines === 1 ? '' : 's'}</div></div>
+        <div class="tot"><span class="lbl">Volume</span><div class="v">${t.est ? '≈' : ''}${t.vol.toFixed(1)} L</div><div class="s">${t.cap ? `of ${t.cap.toFixed(1)} L case capacity` : 'no case selected'}</div>${t.cap ? `<div class="bar ${t.vol > t.cap ? 'over' : ''}"><i style="width:${fill}%"></i></div>` : ''}</div>
+        <div class="tot"><span class="lbl">Our cost</span><div class="v">${money.whole(t.cost)}</div><div class="s">${money.cad(t.cost)} CAD · ${usd(t.cost)}</div></div>
+        <div class="tot"><span class="lbl">Client price</span><div class="v">${money.whole(t.sell)}</div><div class="s">${money.cad(t.sell)} CAD · ${usd(t.sell)}</div></div>
+        <div class="tot"><span class="lbl">Margin</span><div class="v">${money.whole(m)}</div><div class="s">${pct.toFixed(1)}% · USD→CAD ${S.rate}</div></div>`;
+    }
+
+    /* ---------- workspace ---------- */
+    function renderWork() {
+      const w = document.getElementById('work');
+      const c = customers.find(x => x.id === currentId);
+      if (!c) { w.innerHTML = `<div class="blank"><div><h2>Select a customer</h2><p>Or add a new one to start building their package.</p></div></div>`; return; }
+      w.innerHTML = `
+        <div class="c-head">
+          <div>
+            <span class="eyebrow">${esc(c.status || 'Intake')}${c.location ? ' / ' + esc(c.location) : ''}</span>
+            <h1>${esc(c.name)}</h1>
+            <div class="c-meta"><span>${esc(c.email || '')}</span><span>${esc(c.phone || '')}</span><span>${esc(c.household || '')}</span></div>
+            ${c.notes ? `<p class="c-notes">${esc(c.notes)}</p>` : ''}
+          </div>
+          <div class="c-actions"><button class="btn" type="button" id="edit-c">Edit details</button></div>
+        </div>
+        <div class="totals" id="totals"></div>
+
+        <div class="sec-title"><h2><small>01</small>Gear package</h2><span class="hint">Click an item to add or remove it. You can also drag it across.</span></div>
+        <div class="cols">
+          <div class="panel">
+            <div class="panel-head"><span class="lbl">Full catalog</span><input class="inp" type="search" id="gsearch" placeholder="Filter gear" aria-label="Filter gear" value="${esc(catQuery)}"></div>
+            <div id="catalog"></div>
+          </div>
+          <div class="panel sticky">
+            <div class="panel-head"><span class="lbl">Their package</span><span class="lbl" id="pk-count"></span></div>
+            <div class="scroll"><ul class="pk" id="package"></ul></div>
+            <div class="pk-foot"><span>Unit price = client price per item. Blank uses the catalog price.</span></div>
+          </div>
+        </div>
+
+        <div class="sec-title"><h2><small>02</small>Training path</h2><span class="hint">Drag to set the order they work through it.</span></div>
+        <div class="cols">
+          <div class="panel"><div class="panel-head"><span class="lbl">Their sequence</span><span class="lbl" id="tl-count"></span></div><ol class="tl" id="tpath"></ol></div>
+          <div class="panel lib"><div class="panel-head"><span class="lbl">Module library</span><a class="adm-link" href="training.html">Manage modules</a></div><ul class="tl" id="tlib"></ul></div>
+        </div>`;
+      document.getElementById('edit-c').addEventListener('click', () => openCustomer(c));
+      const gs = document.getElementById('gsearch');
+      gs.addEventListener('input', () => { catQuery = gs.value; renderCatalog(c); });
+      renderTotals(c); renderCatalog(c); renderPackage(c); renderTraining(c);
+    }
+
+    function inPkg(c, gid) { return cg.find(x => x.customer_id === c.id && x.gear_id === gid); }
+
+    function renderCatalog(c) {
+      const host = document.getElementById('catalog'); if (!host) return;
+      const q = catQuery.trim().toLowerCase();
+      const groups = [...cats, { id: null, name: 'Unsorted' }];
+      host.innerHTML = groups.map(cat => {
+        const items = gear.filter(g => (g.category_id || null) === cat.id && !g.archived && (!q || (g.name + ' ' + (g.description || '') + ' ' + (g.source || '')).toLowerCase().includes(q)));
+        if (!items.length) return '';
+        const nOn = items.filter(g => inPkg(c, g.id)).length;
+        const open = q || !openCats || openCats[cat.id || 'none'] !== false;
+        return `<details class="cat" data-cat="${cat.id || 'none'}" ${open ? 'open' : ''}><summary><span class="t">${esc(cat.name)}</span><span class="n">${nOn}/${items.length}</span></summary>
+          <ul class="gl" data-cat="${cat.id || 'none'}">${items.map(g => {
+            const on = !!inPkg(c, g.id);
+            return `<li class="gi ${on ? 'on' : ''}" data-gid="${g.id}" role="button" tabindex="0" aria-pressed="${on}">
+              <span class="box" aria-hidden="true"></span>
+              ${g.thumb ? `<img class="th" src="${esc(g.thumb)}" alt="" loading="lazy">` : '<span class="th none"></span>'}
+              <span><span class="nm">${esc(g.name)}</span><br><span class="sub">${esc(g.source || '')}${g.volume_l ? ` · ${g.volume_est ? '≈' : ''}${g.volume_l} L` : ''}${g.capacity_l ? ` · holds ${g.capacity_l} L` : ''}</span></span>
+              <span class="pr">${money.cad(money.sellCAD(g, S))}<small>cost ${money.cad(money.costCAD(g, S))}</small></span></li>`;
+          }).join('')}</ul></details>`;
+      }).join('') || '<p class="tl-empty">No gear matches.</p>';
+      host.querySelectorAll('details.cat').forEach(d => d.addEventListener('toggle', () => {
+        if (catQuery) return; openCats = openCats || {}; openCats[d.dataset.cat] = d.open;
+      }));
+      host.querySelectorAll('.gl').forEach(ul => Sortable.create(ul, {
+        group: { name: 'gear', pull: 'clone', put: false }, sort: false, animation: 120,
+        filter: '.on', preventOnFilter: false, delay: 80, delayOnTouchOnly: true,
+      }));
+    }
+    document.addEventListener('click', e => {
+      const li = e.target.closest('.gi'); if (!li) return;
+      const c = customers.find(x => x.id === currentId); if (c) toggleGear(c, li.dataset.gid);
+    });
+    document.addEventListener('keydown', e => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('gi')) {
+        e.preventDefault(); const c = customers.find(x => x.id === currentId); if (c) toggleGear(c, e.target.dataset.gid);
+      }
+    });
+
+    let busy = false;
+    async function toggleGear(c, gid) {
+      if (busy) return; busy = true;
+      try {
+        const ex = inPkg(c, gid);
+        if (ex) { await store.remove('customer_gear', ex.id); cg = cg.filter(x => x.id !== ex.id); }
+        else { const r = await store.insert('customer_gear', { customer_id: c.id, gear_id: gid, qty: 1, sell_cad: null }); cg.push(r); }
+        refreshGear(c, gid);
+      } finally { busy = false; }
+    }
+    function refreshGear(c, focusGid) {
+      const y = window.scrollY;
+      renderCatalog(c); renderPackage(c); renderTotals(c); renderList();
+      window.scrollTo(0, y);
+      if (focusGid) { const el = document.querySelector(`.gi[data-gid="${focusGid}"]`); if (el && document.activeElement === document.body) el.focus({ preventScroll: true }); }
+    }
+
+    function renderPackage(c) {
+      const host = document.getElementById('package'); if (!host) return;
+      const order = id => { const g = gearById(id); const ci = cats.findIndex(k => k.id === (g && g.category_id)); return (ci < 0 ? 999 : ci) * 10000 + (g ? g.sort : 0); };
+      const lines = cg.filter(x => x.customer_id === c.id && gearById(x.gear_id)).sort((a, b) => order(a.gear_id) - order(b.gear_id));
+      document.getElementById('pk-count').textContent = lines.length ? `${lines.length} line${lines.length === 1 ? '' : 's'}` : '';
+      host.innerHTML = lines.length ? lines.map(l => {
+        const g = gearById(l.gear_id), unit = money.sellCAD(g, S, l.sell_cad);
+        return `<li class="pi" data-lid="${l.id}">
+          <span><span class="sub">${esc(catName(g.category_id))}</span><br><span class="nm">${esc(g.name)}</span>${g.archived ? ' <span class="sub">· archived</span>' : ''}</span>
+          <span class="qty"><button type="button" data-q="-1" aria-label="Fewer">−</button><input type="number" min="1" max="99" value="${l.qty}" aria-label="Quantity"><button type="button" data-q="1" aria-label="More">+</button></span>
+          <input class="unit ${l.sell_cad != null ? 'custom' : ''}" type="number" step="0.01" min="0" placeholder="${money.sellCAD(g, S).toFixed(2)}" value="${l.sell_cad != null ? l.sell_cad : ''}" aria-label="Unit price for this client (CAD)" title="Client unit price, CAD">
+          <span class="line">${money.cad(unit * l.qty)}<small>cost ${money.cad(money.costCAD(g, S) * l.qty)}</small></span>
+          <button class="x" type="button" aria-label="Remove ${esc(g.name)}">×</button></li>`;
+      }).join('') : '<li class="pk-empty">Nothing selected yet. Click items in the catalog to add them, or drag them here.</li>';
+      Sortable.create(host, {
+        group: { name: 'gear', pull: false, put: true }, sort: false,
+        onAdd(evt) { const gid = evt.item.dataset.gid; evt.item.remove(); if (gid && !inPkg(c, gid)) toggleGear(c, gid); },
+      });
+    }
+    document.addEventListener('click', async e => {
+      const pi = e.target.closest('.pi'); if (!pi) return;
+      const l = cg.find(x => x.id === pi.dataset.lid); if (!l) return;
+      const c = customers.find(x => x.id === currentId);
+      if (e.target.closest('.x')) { await store.remove('customer_gear', l.id); cg = cg.filter(x => x.id !== l.id); refreshGear(c); return; }
+      const qb = e.target.closest('[data-q]');
+      if (qb) { const q = Math.max(1, Math.min(99, l.qty + Number(qb.dataset.q))); if (q !== l.qty) { l.qty = q; await store.update('customer_gear', l.id, { qty: q }); refreshGear(c); } }
+    });
+    document.addEventListener('change', async e => {
+      const pi = e.target.closest('.pi'); if (!pi) return;
+      const l = cg.find(x => x.id === pi.dataset.lid); if (!l) return;
+      const c = customers.find(x => x.id === currentId);
+      if (e.target.matches('.qty input')) { const q = Math.max(1, Math.min(99, parseInt(e.target.value) || 1)); l.qty = q; await store.update('customer_gear', l.id, { qty: q }); }
+      if (e.target.matches('.unit')) { const v = e.target.value === '' ? null : Math.max(0, Number(e.target.value)); l.sell_cad = v; await store.update('customer_gear', l.id, { sell_cad: v }); }
+      refreshGear(c);
+    });
+
+    /* ---------- training ---------- */
+    function moduleHTML(m, i, assigned) {
+      const links = (m.links || []).filter(x => x && x.url).map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.label || 'Link')} ↗</a>`).join('');
+      const body = `<span><span class="nm">${esc(m.title)}</span>${m.description ? `<div class="ds">${esc(m.description)}</div>` : ''}${links ? `<div class="lk">${links}</div>` : ''}</span>`;
+      if (assigned) return `<li class="ti" data-mid="${m.id}"><span class="drag" title="Drag to reorder" aria-hidden="true">⋮⋮</span><span class="idx">${String(i + 1).padStart(2, '0')}</span>${body}<span><span class="dur">${m.duration_min ? m.duration_min + ' min' : ''}</span> <button class="x" type="button" data-unassign aria-label="Remove ${esc(m.title)}">×</button></span></li>`;
+      return `<li class="ti" data-mid="${m.id}">${body}<button class="addm" type="button" data-assign aria-label="Add ${esc(m.title)}">+</button></li>`;
+    }
+    function renderTraining(c) {
+      const path = document.getElementById('tpath'), lib = document.getElementById('tlib'); if (!path) return;
+      const mine = cm.filter(x => x.customer_id === c.id).sort((a, b) => a.position - b.position);
+      const mods = mine.map(x => modules.find(m => m.id === x.module_id)).filter(Boolean);
+      const total = mods.reduce((s, m) => s + (m.duration_min || 0), 0);
+      document.getElementById('tl-count').textContent = mods.length ? `${mods.length} modules${total ? ' · ' + (total / 60).toFixed(1) + ' h' : ''}` : '';
+      path.innerHTML = mods.length ? mods.map((m, i) => moduleHTML(m, i, true)).join('') : '<li class="tl-empty">No modules yet. Add them from the library.</li>';
+      const rest = modules.filter(m => !mine.some(x => x.module_id === m.id));
+      lib.innerHTML = rest.length ? rest.map(m => moduleHTML(m, 0, false)).join('') : `<li class="tl-empty">${modules.length ? 'Every module is assigned.' : 'No modules in the library yet.'}</li>`;
+      Sortable.create(path, {
+        group: { name: 'train', put: true }, handle: '.drag', animation: 150, filter: '.tl-empty',
+        onUpdate: () => saveOrder(c),
+        onAdd: () => saveOrder(c),
+      });
+      Sortable.create(lib, { group: { name: 'train', pull: true, put: false }, sort: false, animation: 150, filter: '.tl-empty, .addm', preventOnFilter: false });
+    }
+    async function saveOrder(c) {
+      const order = [...new Set([...document.getElementById('tpath').children].map(li => li.dataset.mid).filter(Boolean))];
+      for (let i = 0; i < order.length; i++) {
+        const mid = order[i];
+        const ex = cm.find(x => x.customer_id === c.id && x.module_id === mid);
+        if (ex) { if (ex.position !== i) { ex.position = i; await store.update('customer_modules', ex.id, { position: i }); } }
+        else { const r = await store.insert('customer_modules', { customer_id: c.id, module_id: mid, position: i }); cm.push(r); }
+      }
+      renderTraining(c);
+    }
+    document.addEventListener('click', async e => {
+      const c = customers.find(x => x.id === currentId); if (!c) return;
+      const add = e.target.closest('[data-assign]');
+      if (add) {
+        const mid = add.closest('[data-mid]').dataset.mid;
+        const pos = cm.filter(x => x.customer_id === c.id).length;
+        const r = await store.insert('customer_modules', { customer_id: c.id, module_id: mid, position: pos }); cm.push(r);
+        renderTraining(c); return;
+      }
+      const rm = e.target.closest('[data-unassign]');
+      if (rm) {
+        const mid = rm.closest('[data-mid]').dataset.mid;
+        const ex = cm.find(x => x.customer_id === c.id && x.module_id === mid);
+        if (ex) { await store.remove('customer_modules', ex.id); cm = cm.filter(x => x.id !== ex.id); }
+        const rest = cm.filter(x => x.customer_id === c.id).sort((a, b) => a.position - b.position);
+        for (let i = 0; i < rest.length; i++) if (rest[i].position !== i) { rest[i].position = i; await store.update('customer_modules', rest[i].id, { position: i }); }
+        renderTraining(c);
+      }
+    });
+
+    /* ---------- customer dialog ---------- */
+    const dlg = document.getElementById('cdlg'), form = document.getElementById('cform');
+    let editing = null;
+    function openCustomer(c) {
+      editing = c || null; form.reset();
+      document.getElementById('cdlg-title').textContent = c ? 'Edit customer' : 'New customer';
+      document.getElementById('cdelete').hidden = !c;
+      if (c) for (const k of ['name', 'email', 'phone', 'household', 'location', 'status', 'notes']) form.elements[k].value = c[k] || (k === 'status' ? 'Intake' : '');
+      dlg.showModal(); form.elements.name.focus();
+    }
+    document.getElementById('new-customer').addEventListener('click', () => openCustomer(null));
+    dlg.addEventListener('close', async () => {
+      if (dlg.returnValue !== 'save') return;
+      const data = {}; for (const k of ['name', 'email', 'phone', 'household', 'location', 'status', 'notes']) data[k] = form.elements[k].value.trim() || null;
+      data.status = data.status || 'Intake';
+      if (!data.name) return;
+      if (editing) { Object.assign(editing, await store.update('customers', editing.id, data)); toast('Saved'); }
+      else { const r = await store.insert('customers', data); customers.push(r); currentId = r.id; toast('Customer added'); }
+      customers.sort((a, b) => a.name.localeCompare(b.name));
+      select(currentId);
+    });
+    document.getElementById('cdelete').addEventListener('click', async () => {
+      if (!editing) return;
+      const typed = prompt(`Type DELETE to remove ${editing.name} and their package.`);
+      if (typed !== 'DELETE') return;
+      await store.remove('customers', editing.id);
+      customers = customers.filter(x => x.id !== editing.id);
+      cg = cg.filter(x => x.customer_id !== editing.id); cm = cm.filter(x => x.customer_id !== editing.id);
+      dlg.close('cancel'); select(null); toast('Customer deleted');
+    });
+
+    await load();
+    if (currentId && !customers.some(c => c.id === currentId)) currentId = null;
+    if (!currentId && customers.length && window.innerWidth >= 900) currentId = customers[0].id;
+    select(currentId);
+  })();
+  </script>
+</body>
+</html>
