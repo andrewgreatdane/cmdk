@@ -82,6 +82,9 @@
     .x { background: none; border: 0; color: var(--ink-3); cursor: pointer; font-size: 16px; padding: 0 0 0 2px; line-height: 1; }
     .x:hover { color: #a3271b; }
     .pk.drop-hover { background: var(--sel); }
+    .pk-cat { display: flex; justify-content: space-between; gap: 10px; padding: 14px 0 4px; border-bottom: 1px solid var(--rule-soft); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+    .pk-cat span:last-child { font-family: var(--mono); letter-spacing: 0; }
+    .pk-cat:first-child { padding-top: 8px; }
 
     /* training */
     .tl { list-style: none; margin: 0; padding: 0; min-height: 50px; }
@@ -335,9 +338,18 @@
       const order = id => { const g = gearById(id); const ci = cats.findIndex(k => k.id === (g && g.category_id)); return (ci < 0 ? 999 : ci) * 10000 + (g ? g.sort : 0); };
       const lines = cg.filter(x => x.customer_id === c.id && gearById(x.gear_id)).sort((a, b) => order(a.gear_id) - order(b.gear_id));
       document.getElementById('pk-count').textContent = lines.length ? `${lines.length} line${lines.length === 1 ? '' : 's'}` : '';
+      let lastCat;
       host.innerHTML = lines.length ? lines.map(l => {
         const g = gearById(l.gear_id), unit = money.sellCAD(g, S, l.sell_cad);
-        return `<li class="pi" data-lid="${l.id}">
+        let head = '';
+        const ck = cats.some(k => k.id === g.category_id) ? g.category_id : 'none';
+        if (ck !== lastCat) {
+          lastCat = ck;
+          const sub = lines.filter(x => { const y = gearById(x.gear_id); return (cats.some(k => k.id === y.category_id) ? y.category_id : 'none') === ck; })
+            .reduce((s2, x) => s2 + money.sellCAD(gearById(x.gear_id), S, x.sell_cad) * x.qty, 0);
+          head = `<li class="pk-cat"><span>${esc(catName(g.category_id))}</span><span>${money.cad(sub)}</span></li>`;
+        }
+        return head + `<li class="pi" data-lid="${l.id}">
           <span class="nm">${esc(g.name)}${g.archived ? ' <span class="sub">(archived)</span>' : ''}</span>
           <span class="qty"><button type="button" data-q="-1" aria-label="Fewer">−</button><input type="number" min="1" max="99" value="${l.qty}" aria-label="Quantity"><button type="button" data-q="1" aria-label="More">+</button></span>
           <input class="unit ${l.sell_cad != null ? 'custom' : ''}" type="number" step="0.01" min="0" placeholder="${money.sellCAD(g, S).toFixed(2)}" value="${l.sell_cad != null ? l.sell_cad : ''}" aria-label="Unit price for this client (CAD)" title="Client unit price, CAD">
