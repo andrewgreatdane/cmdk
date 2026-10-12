@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Schedule | Resilience Systems Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="admin.css">
+  <style>
+    main { max-width: 1120px; margin: 0 auto; padding: 24px 24px 80px; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 40px; align-items: start; }
+    .filters { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; font-size: 13px; margin-bottom: 20px; color: var(--ink-2); }
+    .filters select { border: 1px solid var(--rule-soft); padding: 3px 6px; background: #fff; font-size: 13px; }
+    section { margin-bottom: 32px; }
+    .tk { list-style: none; margin: 0; padding: 0; }
+    .tk li { display: grid; grid-template-columns: 20px 100px minmax(0, 1fr) auto; gap: 12px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--rule-soft); font-size: 14px; }
+    .tk li.done { color: var(--ink-3); }
+    .tk li.done .what { text-decoration: line-through; }
+    .tk .d { font-family: var(--mono); font-size: 13px; }
+    .tk .late .d { color: #a3271b; }
+    .tk .cust { font-weight: 600; }
+    .tk .who { font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+    .tk input { accent-color: #000; }
+    .tk .empty { display: block; color: var(--ink-3); }
+    .x { background: none; border: 0; color: var(--ink-3); cursor: pointer; font-size: 16px; padding: 0 0 0 6px; }
+    .x:hover { color: #a3271b; }
+    aside { position: sticky; top: 128px; }
+    aside form { display: grid; gap: 10px; padding-top: 10px; }
+    aside .btn { justify-self: start; }
+    .hint { font-size: 12px; color: var(--ink-3); }
+    @media (max-width: 860px) { main { grid-template-columns: 1fr; padding: 16px 16px 60px; } aside { position: static; order: -1; } .tk li { grid-template-columns: 20px 86px minmax(0, 1fr); } .tk .who { grid-column: 3; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div>
+      <div class="filters">
+        <label>Who <select id="f-who"><option value="">Everyone</option></select></label>
+        <label>What <select id="f-kind"><option value="">Everything</option></select></label>
+        <label><input type="checkbox" id="f-done"> Show done</label>
+      </div>
+      <div id="groups"></div>
+    </div>
+    <aside>
+      <h2 class="h2"><span>Add to schedule</span></h2>
+      <form id="add">
+        <label class="field"><span class="lbl">Customer</span><select name="customer_id"></select></label>
+        <label class="field"><span class="lbl">What</span><select name="kind"></select></label>
+        <label class="field"><span class="lbl">Details (optional)</span><input name="title" placeholder="e.g. Deliver home case + vehicle kit"></label>
+        <div class="grid2"><label class="field"><span class="lbl">Due</span><input name="due_date" type="date" required></label>
+        <label class="field"><span class="lbl">Who</span><select name="assignee"><option value="">Anyone</option></select></label></div>
+        <label class="field"><span class="lbl"><input type="checkbox" name="annual" checked> If this is a delivery, also book the first annual check a year later</span></label>
+        <button class="btn btn-solid" type="submit">Add</button>
+      </form>
+      <p class="hint">Ticking off an annual check books the next one automatically.</p>
+    </aside>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="config.js"></script>
+  <script src="seed.js"></script>
+  <script src="core.js"></script>
+  <script>
+  (async function () {
+    const { store, esc, toast } = RS;
+    const user = await RS.auth.guard();
+    RS.header('schedule.html', user);
+    let [tasks, customers] = await Promise.all([store.list('tasks'), store.list('customers')]);
+    customers.sort((a, b) => a.name.localeCompare(b.name));
+    const $ = s => document.querySelector(s);
+    const cname = id => (customers.find(c => c.id === id) || {}).name || '—';
+    const opt = v => `<option>${esc(v)}</option>`;
+    $('#f-who').innerHTML += RS.ADMIN_NAMES.map(opt).join('');
+    $('#f-kind').innerHTML += RS.TASK_KINDS.map(opt).join('');
+    const f = $('#add').elements;
+    f.customer_id.innerHTML = customers.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('') || '<option value="">Add a customer first</option>';
+    f.kind.innerHTML = RS.TASK_KINDS.map(opt).join('');
+    f.assignee.innerHTML += RS.ADMIN_NAMES.map(opt).join('');
+    const pre = new URLSearchParams(location.search).get('customer'); if (pre) f.customer_id.value = pre;
+
+    const iso = d => d.toISOString().slice(0, 10);
+    function render() {
+      const today = new Date(); const t0 = iso(today);
+      const in7 = iso(new Date(today.getTime() + 7 * 864e5)), in30 = iso(new Date(today.getTime() + 30 * 864e5));
+      const who = $('#f-who').value, kind = $('#f-kind').value, showDone = $('#f-done').checked;
+      const list = tasks.filter(t => (!who || t.assignee === who) && (!kind || t.kind === kind)).sort((a, b) => a.due_date.localeCompare(b.due_date));
+      const open = list.filter(t => !t.done_at);
+      const groups = [
+        ['Overdue', open.filter(t => t.due_date < t0)],
+        ['Next 7 days', open.filter(t => t.due_date >= t0 && t.due_date <= in7)],
+        ['Next 30 days', open.filter(t => t.due_date > in7 && t.due_date <= in30)],
+        ['Later', open.filter(t => t.due_date > in30)],
+      ];
+      if (showDone) groups.push(['Done', list.filter(t => t.done_at).reverse()]);
+      $('#groups').innerHTML = groups.filter(([n, l]) => l.length || n === 'Next 7 days').map(([name, l]) => `<section><h2 class="h2"><span>${name}</span><span class="sub">${l.length}</span></h2><ul class="tk">${
+        l.length ? l.map(t => `<li data-id="${t.id}" class="${t.done_at ? 'done' : (t.due_date < t0 ? 'late' : '')}"><input type="checkbox" ${t.done_at ? 'checked' : ''} aria-label="Done">
+          <span class="d">${RS.fmtDate(t.due_date)}</span>
+          <span class="what"><a class="cust" href="customers.html?id=${t.customer_id}">${esc(cname(t.customer_id))}</a> · ${esc(t.kind)}${t.title ? ' — ' + esc(t.title) : ''}</span>
+          <span class="who">${esc(t.assignee || 'Anyone')}<button type="button" class="x" data-del aria-label="Delete">×</button></span></li>`).join('')
+        : '<li class="empty">Nothing due.</li>'}</ul></section>`).join('');
+    }
+    ['#f-who', '#f-kind', '#f-done'].forEach(s => $(s).addEventListener('change', render));
+    $('#groups').addEventListener('change', async e => {
+      if (e.target.type !== 'checkbox') return;
+      const t = tasks.find(x => x.id === e.target.closest('li').dataset.id);
+      await RS.completeTask(t, e.target.checked, tasks); render();
+    });
+    $('#groups').addEventListener('click', async e => {
+      if (!e.target.closest('[data-del]')) return;
+      const id = e.target.closest('li').dataset.id;
+      if (!confirm('Delete this item?')) return;
+      await store.remove('tasks', id); tasks = tasks.filter(t => t.id !== id); render();
+    });
+    $('#add').addEventListener('submit', async e => {
+      e.preventDefault(); if (!f.customer_id.value) return;
+      const row = { customer_id: f.customer_id.value, kind: f.kind.value, title: f.title.value.trim() || null, due_date: f.due_date.value, assignee: f.assignee.value || null, done_at: null };
+      tasks.push(await store.insert('tasks', row));
+      if (row.kind === 'Delivery' && f.annual.checked) {
+        const d = new Date(row.due_date + 'T12:00:00'); d.setFullYear(d.getFullYear() + 1);
+        tasks.push(await store.insert('tasks', { ...row, kind: 'Annual check', title: null, due_date: iso(d) }));
+      }
+      toast('Added'); f.title.value = ''; render();
+    });
+    render();
+  })();
+  </script>
+</body>
+</html>

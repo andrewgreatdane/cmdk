@@ -67,7 +67,35 @@
 
     /* package */
     .pk { list-style: none; margin: 0; padding: 0; min-height: 60px; }
-    .pk-empty { padding: 20px 4px; color: var(--ink-3); font-size: 13px; border-bottom: 1px dashed var(--rule-soft); }
+    .pk-none { padding: 6px 0 8px; color: var(--ink-3); font-size: 13px; border-bottom: 1px solid var(--rule-soft); }
+    .pk-cat.empty { color: #b3b3b3; }
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--rule); margin: 0 0 24px; overflow-x: auto; }
+    .tabs button { background: none; border: 0; border-bottom: 3px solid transparent; padding: 8px 16px 8px 0; margin-right: 16px; cursor: pointer; font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); white-space: nowrap; }
+    .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+    .tabs button:hover { color: var(--ink); }
+    .mem { list-style: none; margin: 0; padding: 0; }
+    .mem li { padding: 10px 0; border-bottom: 1px solid var(--rule-soft); cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; }
+    .mem li:hover { background: var(--hover); }
+    .mem .nm { font-weight: 600; font-size: 14px; }
+    .mem .sub { font-size: 13px; color: var(--ink-2); grid-column: 1 / -1; }
+    .mem .flag { font-family: var(--mono); font-size: 12px; color: #a3271b; grid-column: 1 / -1; }
+    .mem .age { font-family: var(--mono); font-size: 13px; color: var(--ink-3); }
+    .mem .empty { color: var(--ink-3); font-size: 13px; cursor: default; display: block; }
+    .facts { display: grid; grid-template-columns: 140px 1fr; margin: 0; }
+    .facts dt, .facts dd { padding: 8px 0; border-bottom: 1px solid var(--rule-soft); margin: 0; font-size: 14px; }
+    .facts dt { color: var(--ink-3); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; padding-top: 10px; }
+    .facts dd { white-space: pre-wrap; }
+    .muted { color: var(--ink-3); }
+    .tk { list-style: none; margin: 0; padding: 0; }
+    .tk li { display: grid; grid-template-columns: 20px 96px 1fr auto; gap: 10px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--rule-soft); font-size: 14px; }
+    .tk li.done { color: var(--ink-3); text-decoration: line-through; }
+    .tk .d { font-family: var(--mono); font-size: 13px; }
+    .tk .late .d, .tk li.late .d { color: #a3271b; }
+    .tk .who { font-size: 12px; color: var(--ink-3); }
+    .tk input { accent-color: #000; }
+    .taskform { display: grid; gap: 10px; padding-top: 10px; }
+    .taskform .btn { justify-self: start; }
+    .msec { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin: 6px 0 -4px; }
     .pi { display: grid; grid-template-columns: minmax(0,1fr) auto auto auto auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--rule-soft); }
     .pi .nm { font-size: 14px; line-height: 1.3; }
     .qty { display: inline-flex; border: 1px solid var(--rule-soft); }
@@ -142,9 +170,58 @@
         <label class="field"><span class="lbl">Status</span>
           <select name="status"><option>Intake</option><option>Assessment</option><option>Design</option><option>Proposal</option><option>Active</option><option>Delivered</option><option>Paused</option></select>
         </label>
+        <label class="field"><span class="lbl">Address (used for the map)</span><input name="address" placeholder="Street, city, province"></label>
+        <label class="field"><span class="lbl">Home</span><input name="home" placeholder="e.g. 3-storey house, basement, generator hookup"></label>
+        <div class="grid2">
+          <label class="field"><span class="lbl">Vehicles</span><input name="vehicles"></label>
+          <label class="field"><span class="lbl">Pets</span><input name="pets"></label>
+        </div>
+        <label class="field"><span class="lbl">Emergency contacts</span><textarea name="emergency_contacts" placeholder="Name, relation, phone — one per line"></textarea></label>
         <label class="field"><span class="lbl">Notes</span><textarea name="notes"></textarea></label>
       </div>
       <div class="dlg-foot"><button class="btn btn-danger" type="button" id="cdelete">Delete customer</button><span class="spacer"></span><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn btn-solid" value="save">Save</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="adm-dialog" id="mdlg">
+    <form method="dialog" id="mform">
+      <div class="dlg-head"><h2 id="mdlg-title">Person</h2><button class="adm-link" value="cancel" formnovalidate>Close</button></div>
+      <div class="dlg-body">
+        <div class="grid2">
+          <label class="field"><span class="lbl">Name</span><input name="name" required></label>
+          <label class="field"><span class="lbl">Relationship</span><input name="relationship" placeholder="e.g. Spouse, Son, Mother"></label>
+        </div>
+        <div class="grid2">
+          <label class="field"><span class="lbl">Birth year</span><input name="birth_year" type="number" min="1900" max="2100" placeholder="e.g. 1984"></label>
+          <label class="field"><span class="lbl">Sex</span><select name="sex"><option value=""></option><option>Female</option><option>Male</option><option>Other</option></select></label>
+        </div>
+        <div class="grid2">
+          <label class="field"><span class="lbl">Height</span><input name="height" placeholder="e.g. 5'10&quot; / 178 cm"></label>
+          <label class="field"><span class="lbl">Weight</span><input name="weight" placeholder="e.g. 170 lb"></label>
+        </div>
+        <p class="msec">Sizes</p>
+        <div class="grid2">
+          <label class="field"><span class="lbl">Top / jacket</span><input name="size_top"></label>
+          <label class="field"><span class="lbl">Pants (waist × inseam)</span><input name="size_bottom"></label>
+        </div>
+        <div class="grid2">
+          <label class="field"><span class="lbl">Shoe</span><input name="size_shoe"></label>
+          <label class="field"><span class="lbl">Gloves / hat</span><input name="size_other"></label>
+        </div>
+        <p class="msec">Health</p>
+        <div class="grid2">
+          <label class="field"><span class="lbl">Blood type</span><input name="blood_type"></label>
+          <label class="field"><span class="lbl">Allergies</span><input name="allergies"></label>
+        </div>
+        <label class="field"><span class="lbl">Medical conditions</span><textarea name="medical"></textarea></label>
+        <label class="field"><span class="lbl">Medications &amp; supply needed</span><textarea name="medications" placeholder="Name, dose, how many days on hand"></textarea></label>
+        <div class="grid2">
+          <label class="field"><span class="lbl">Diet</span><input name="diet" placeholder="e.g. gluten-free, infant formula"></label>
+          <label class="field"><span class="lbl">Mobility / special needs</span><input name="mobility" placeholder="e.g. glasses, hearing aid, wheelchair"></label>
+        </div>
+        <label class="field"><span class="lbl">Skills &amp; other notes</span><textarea name="notes" placeholder="e.g. nurse, ham licence, fear of water"></textarea></label>
+      </div>
+      <div class="dlg-foot"><button class="btn btn-danger" type="button" id="mdelete">Remove person</button><span class="spacer"></span><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn btn-solid" value="save">Save</button></div>
     </form>
   </dialog>
 
@@ -177,16 +254,18 @@
     }
     if (await RS.ensureSeed()) toast('Starter catalog loaded');
 
-    let S, cats, gear, customers, cg, cm, modules;
+    let S, cats, gear, customers, cg, cm, modules, members, tasks;
+    let tab = (() => { try { return localStorage.getItem('rs-ctab') || 'gear'; } catch (e) { return 'gear'; } })();
     const params = new URLSearchParams(location.search);
     let currentId = params.get('id');
     let openCats = null;   // remembers collapsed catalog sections
     let catQuery = '';
 
     async function load() {
-      [S, cats, gear, customers, cg, cm, modules] = await Promise.all([
+      [S, cats, gear, customers, cg, cm, modules, members, tasks] = await Promise.all([
         RS.settings(), store.list('categories'), store.list('gear'), store.list('customers'),
-        store.list('customer_gear'), store.list('customer_modules'), store.list('modules')]);
+        store.list('customer_gear'), store.list('customer_modules'), store.list('modules'),
+        store.list('members').catch(() => []), store.list('tasks').catch(() => [])]);
       cats.sort((a, b) => a.sort - b.sort);
       gear.sort((a, b) => a.sort - b.sort);
       modules.sort((a, b) => a.sort - b.sort);
@@ -245,36 +324,87 @@
       const w = document.getElementById('work');
       const c = customers.find(x => x.id === currentId);
       if (!c) { w.innerHTML = `<p class="blank">Select a customer, or add a new one.</p>`; renderTotals(null); return; }
+      const nextTask = tasks.filter(t => t.customer_id === c.id && !t.done_at).sort((x, y) => x.due_date.localeCompare(y.due_date))[0];
+      const nMem = members.filter(m => m.customer_id === c.id).length;
       w.innerHTML = `
         <div class="c-head">
           <div>
             <h1>${esc(c.name)}</h1>
-            <div class="c-meta"><span>${esc(c.status || 'Intake')}</span><span>${esc(c.location || '')}</span><span>${esc(c.household || '')}</span><span>${esc(c.email || '')}</span><span>${esc(c.phone || '')}</span></div>
-            ${c.notes ? `<p class="c-notes">${esc(c.notes)}</p>` : ''}
+            <div class="c-meta"><span>${esc(c.status || 'Intake')}</span><span>${esc(c.location || '')}</span><span>${esc(c.email || '')}</span><span>${esc(c.phone || '')}</span></div>
+            ${nextTask ? `<p class="c-notes">Next: ${esc(nextTask.kind)}${nextTask.title ? ' — ' + esc(nextTask.title) : ''} · ${RS.fmtDate(nextTask.due_date)}</p>` : ''}
           </div>
           <button class="btn" type="button" id="edit-c">Edit details</button>
         </div>
+        <nav class="tabs" role="tablist">
+          ${[['onboarding', `Onboarding${nMem ? ' (' + nMem + ')' : ''}`], ['gear', 'Gear'], ['training', 'Training'], ['schedule', 'Schedule']].map(([k, l]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${tab === k}">${l}</button>`).join('')}
+        </nav>
 
-        <div class="cols">
-          <div>
-            <div class="colhead"><span class="lbl">Catalog — click to add</span><input class="inp" type="search" id="gsearch" placeholder="Filter gear" aria-label="Filter gear" value="${esc(catQuery)}"></div>
-            <div id="catalog"></div>
+        <section data-pane="onboarding" ${tab === 'onboarding' ? '' : 'hidden'}>
+          <div class="cols">
+            <div>
+              <h2 class="h2"><span>Household members</span><button type="button" class="adm-link" id="add-member">+ Add person</button></h2>
+              <ul class="mem" id="members"></ul>
+            </div>
+            <div>
+              <h2 class="h2"><span>Home &amp; logistics</span><button type="button" class="adm-link" id="edit-c2">Edit</button></h2>
+              <dl class="facts">
+                ${[['Address', c.address], ['Household', c.household], ['Home', c.home], ['Vehicles', c.vehicles], ['Pets', c.pets], ['Emergency contacts', c.emergency_contacts], ['Notes', c.notes]].map(([k, v]) => `<dt>${k}</dt><dd>${v ? esc(v) : '<span class="muted">—</span>'}</dd>`).join('')}
+              </dl>
+            </div>
           </div>
-          <div class="side">
-            <h2 class="h2"><span>Their package</span><span class="sub" id="pk-count"></span></h2>
-            <ul class="pk" id="package"></ul>
-            <p class="hint">Price box = client price per unit. Leave blank to use the catalog price.</p>
-          </div>
-        </div>
+        </section>
 
-        <div class="cols">
-          <div><h2 class="h2"><span>Training path</span><span class="sub" id="tl-count"></span></h2><ol class="tl" id="tpath"></ol><p class="hint">Drag ⋮⋮ to set the order.</p></div>
-          <div class="lib"><h2 class="h2"><span>Module library</span><a class="sub" href="training.html">manage</a></h2><ul class="tl" id="tlib"></ul></div>
-        </div>`;
+        <section data-pane="gear" ${tab === 'gear' ? '' : 'hidden'}>
+          <div class="cols">
+            <div>
+              <div class="colhead"><span class="lbl">Catalog — click to add</span><input class="inp" type="search" id="gsearch" placeholder="Filter gear" aria-label="Filter gear" value="${esc(catQuery)}"></div>
+              <div id="catalog"></div>
+            </div>
+            <div class="side">
+              <div class="colhead"><span class="lbl">Their package</span><span class="lbl" id="pk-count"></span></div>
+              <ul class="pk" id="package"></ul>
+              <p class="hint">Price box = client price per unit. Leave blank to use the catalog price.</p>
+            </div>
+          </div>
+        </section>
+
+        <section data-pane="training" ${tab === 'training' ? '' : 'hidden'}>
+          <div class="cols">
+            <div><h2 class="h2"><span>Training path</span><span class="sub" id="tl-count"></span></h2><ol class="tl" id="tpath"></ol><p class="hint">Drag ⋮⋮ to set the order.</p></div>
+            <div class="lib"><h2 class="h2"><span>Module library</span><a class="sub" href="training.html">manage</a></h2><ul class="tl" id="tlib"></ul></div>
+          </div>
+        </section>
+
+        <section data-pane="schedule" ${tab === 'schedule' ? '' : 'hidden'}>
+          <div class="cols">
+            <div><h2 class="h2"><span>Their schedule</span><a class="sub" href="schedule.html">all customers</a></h2><ul class="tk" id="ctasks"></ul></div>
+            <div>
+              <h2 class="h2"><span>Add to schedule</span></h2>
+              <form id="taskform" class="taskform">
+                <label class="field"><span class="lbl">What</span><select name="kind">${RS.TASK_KINDS.map(k => `<option>${k}</option>`).join('')}</select></label>
+                <label class="field"><span class="lbl">Details (optional)</span><input name="title" placeholder="e.g. Swap batteries, top up water"></label>
+                <div class="grid2"><label class="field"><span class="lbl">Due</span><input name="due_date" type="date" required></label>
+                <label class="field"><span class="lbl">Who</span><select name="assignee"><option value="">Anyone</option>${RS.ADMIN_NAMES.map(n => `<option>${esc(n)}</option>`).join('')}</select></label></div>
+                <button class="btn btn-solid" type="submit">Add</button>
+              </form>
+            </div>
+          </div>
+        </section>`;
+      document.querySelectorAll('.tabs [data-tab]').forEach(b => b.addEventListener('click', () => { tab = b.dataset.tab; try { localStorage.setItem('rs-ctab', tab); } catch (e) {} renderWork(); }));
+      document.getElementById('edit-c2').addEventListener('click', () => openCustomer(c));
+      document.getElementById('add-member').addEventListener('click', () => openMember(c, null));
+      document.getElementById('taskform').addEventListener('submit', async e => {
+        e.preventDefault(); const f = e.target.elements;
+        const r = await store.insert('tasks', { customer_id: c.id, kind: f.kind.value, title: f.title.value.trim() || null, due_date: f.due_date.value, assignee: f.assignee.value || null, done_at: null });
+        tasks.push(r);
+        if (r.kind === 'Delivery') { const d = new Date(r.due_date + 'T12:00:00'); d.setFullYear(d.getFullYear() + 1); tasks.push(await store.insert('tasks', { customer_id: c.id, kind: 'Annual check', title: null, due_date: d.toISOString().slice(0, 10), assignee: r.assignee, done_at: null })); toast('Delivery added, first annual check booked a year later'); }
+        else toast('Added to schedule');
+        renderWork();
+      });
       document.getElementById('edit-c').addEventListener('click', () => openCustomer(c));
       const gs = document.getElementById('gsearch');
       gs.addEventListener('input', () => { catQuery = gs.value; renderCatalog(c); });
-      renderTotals(c); renderCatalog(c); renderPackage(c); renderTraining(c);
+      renderTotals(c); renderCatalog(c); renderPackage(c); renderTraining(c); renderMembers(c); renderTasks(c);
     }
 
     function inPkg(c, gid) { return cg.find(x => x.customer_id === c.id && x.gear_id === gid); }
@@ -338,24 +468,23 @@
       const order = id => { const g = gearById(id); const ci = cats.findIndex(k => k.id === (g && g.category_id)); return (ci < 0 ? 999 : ci) * 10000 + (g ? g.sort : 0); };
       const lines = cg.filter(x => x.customer_id === c.id && gearById(x.gear_id)).sort((a, b) => order(a.gear_id) - order(b.gear_id));
       document.getElementById('pk-count').textContent = lines.length ? `${lines.length} line${lines.length === 1 ? '' : 's'}` : '';
-      let lastCat;
-      host.innerHTML = lines.length ? lines.map(l => {
-        const g = gearById(l.gear_id), unit = money.sellCAD(g, S, l.sell_cad);
-        let head = '';
-        const ck = cats.some(k => k.id === g.category_id) ? g.category_id : 'none';
-        if (ck !== lastCat) {
-          lastCat = ck;
-          const sub = lines.filter(x => { const y = gearById(x.gear_id); return (cats.some(k => k.id === y.category_id) ? y.category_id : 'none') === ck; })
-            .reduce((s2, x) => s2 + money.sellCAD(gearById(x.gear_id), S, x.sell_cad) * x.qty, 0);
-          head = `<li class="pk-cat"><span>${esc(catName(g.category_id))}</span><span>${money.cad(sub)}</span></li>`;
-        }
-        return head + `<li class="pi" data-lid="${l.id}">
+      const groups = [...cats, { id: 'none', name: 'Unsorted' }];
+      const keyOf = g => cats.some(k => k.id === g.category_id) ? g.category_id : 'none';
+      host.innerHTML = groups.map(cat => {
+        const mine = lines.filter(l => keyOf(gearById(l.gear_id)) === cat.id);
+        if (cat.id === 'none' && !mine.length) return '';
+        const sub = mine.reduce((t, l) => t + money.sellCAD(gearById(l.gear_id), S, l.sell_cad) * l.qty, 0);
+        return `<li class="pk-cat ${mine.length ? '' : 'empty'}"><span>${esc(cat.name)}</span><span>${mine.length ? money.cad(sub) : '—'}</span></li>` +
+          (mine.length ? mine.map(l => {
+            const g = gearById(l.gear_id), unit = money.sellCAD(g, S, l.sell_cad);
+            return `<li class="pi" data-lid="${l.id}">
           <span class="nm">${esc(g.name)}${g.archived ? ' <span class="sub">(archived)</span>' : ''}</span>
           <span class="qty"><button type="button" data-q="-1" aria-label="Fewer">−</button><input type="number" min="1" max="99" value="${l.qty}" aria-label="Quantity"><button type="button" data-q="1" aria-label="More">+</button></span>
           <input class="unit ${l.sell_cad != null ? 'custom' : ''}" type="number" step="0.01" min="0" placeholder="${money.sellCAD(g, S).toFixed(2)}" value="${l.sell_cad != null ? l.sell_cad : ''}" aria-label="Unit price for this client (CAD)" title="Client unit price, CAD">
           <span class="line">${money.cad(unit * l.qty)}</span>
           <button class="x" type="button" aria-label="Remove ${esc(g.name)}">×</button></li>`;
-      }).join('') : '<li class="pk-empty">Nothing selected yet. Click items in the catalog to add them, or drag them here.</li>';
+          }).join('') : '<li class="pk-none">Nothing yet</li>');
+      }).join('');
       Sortable.create(host, {
         group: { name: 'gear', pull: false, put: true }, sort: false,
         onAdd(evt) { const gid = evt.item.dataset.gid; evt.item.remove(); if (gid && !inPkg(c, gid)) toggleGear(c, gid); },
@@ -431,26 +560,99 @@
       }
     });
 
+    /* ---------- onboarding: household members ---------- */
+    const MFIELDS = ['name', 'relationship', 'birth_year', 'sex', 'height', 'weight', 'size_top', 'size_bottom', 'size_shoe', 'size_other', 'blood_type', 'allergies', 'medical', 'medications', 'diet', 'mobility', 'notes'];
+    function renderMembers(c) {
+      const host = document.getElementById('members'); if (!host) return;
+      const list = members.filter(m => m.customer_id === c.id).sort((a, b) => (a.sort || 0) - (b.sort || 0) || (a.birth_year || 0) - (b.birth_year || 0));
+      const yr = new Date().getFullYear();
+      host.innerHTML = list.length ? list.map(m => {
+        const sizes = [m.size_top && 'Top ' + m.size_top, m.size_bottom && 'Pants ' + m.size_bottom, m.size_shoe && 'Shoe ' + m.size_shoe, m.size_other].filter(Boolean).join(' · ');
+        const flags = [m.allergies && 'Allergies: ' + m.allergies, m.medical && 'Medical: ' + m.medical, m.medications && 'Meds: ' + m.medications, m.mobility && m.mobility, m.diet && 'Diet: ' + m.diet].filter(Boolean).join(' · ');
+        return `<li data-mid="${m.id}" tabindex="0"><span class="nm">${esc(m.name)}${m.relationship ? ` <span class="muted" style="font-weight:400">· ${esc(m.relationship)}</span>` : ''}</span>
+          <span class="age">${m.birth_year ? (yr - m.birth_year) + ' yrs' : ''}${m.sex ? ' · ' + esc(m.sex) : ''}</span>
+          ${sizes ? `<span class="sub">${esc(sizes)}</span>` : ''}${flags ? `<span class="flag">${esc(flags)}</span>` : ''}</li>`;
+      }).join('') : '<li class="empty">No one added yet. Start with the person you spoke to, then everyone in the household.</li>';
+    }
+    document.addEventListener('click', e => {
+      const li = e.target.closest('.mem li[data-mid]'); if (!li) return;
+      const c = customers.find(x => x.id === currentId); openMember(c, members.find(m => m.id === li.dataset.mid));
+    });
+    const mdlg = document.getElementById('mdlg'), mform = document.getElementById('mform');
+    let editingM = null, memberFor = null;
+    function openMember(c, m) {
+      memberFor = c; editingM = m || null; mform.reset();
+      document.getElementById('mdlg-title').textContent = m ? 'Edit person' : 'Add person';
+      document.getElementById('mdelete').hidden = !m;
+      if (m) for (const k of MFIELDS) mform.elements[k].value = m[k] != null ? m[k] : '';
+      mdlg.showModal(); mform.elements.name.focus();
+    }
+    mdlg.addEventListener('close', async () => {
+      if (mdlg.returnValue !== 'save') return;
+      const d = {}; for (const k of MFIELDS) d[k] = mform.elements[k].value.trim() || null;
+      d.birth_year = d.birth_year ? parseInt(d.birth_year) : null;
+      if (!d.name) return;
+      if (editingM) Object.assign(editingM, await store.update('members', editingM.id, d));
+      else { d.customer_id = memberFor.id; d.sort = members.filter(m => m.customer_id === memberFor.id).length; members.push(await store.insert('members', d)); }
+      toast('Saved'); renderWork();
+    });
+    document.getElementById('mdelete').addEventListener('click', async () => {
+      if (!editingM || !confirm(`Remove ${editingM.name} from this household?`)) return;
+      await store.remove('members', editingM.id); members = members.filter(m => m.id !== editingM.id);
+      mdlg.close('cancel'); renderWork();
+    });
+
+    /* ---------- customer schedule ---------- */
+    function renderTasks(c) {
+      const host = document.getElementById('ctasks'); if (!host) return;
+      const today = new Date().toISOString().slice(0, 10);
+      const list = tasks.filter(t => t.customer_id === c.id).sort((a, b) => (!!a.done_at - !!b.done_at) || a.due_date.localeCompare(b.due_date));
+      host.innerHTML = list.length ? list.map(t => `<li class="${t.done_at ? 'done' : (t.due_date < today ? 'late' : '')}" data-tid="${t.id}">
+        <input type="checkbox" ${t.done_at ? 'checked' : ''} aria-label="Done"><span class="d">${RS.fmtDate(t.due_date)}</span>
+        <span>${esc(t.kind)}${t.title ? ' — ' + esc(t.title) : ''}</span><span class="who">${esc(t.assignee || '')} <button type="button" class="x" data-del aria-label="Delete">×</button></span></li>`).join('')
+        : '<li style="display:block;color:var(--ink-3)">Nothing scheduled.</li>';
+    }
+    document.addEventListener('change', async e => {
+      const li = e.target.closest('#ctasks li[data-tid]'); if (!li || e.target.type !== 'checkbox') return;
+      const t = tasks.find(x => x.id === li.dataset.tid);
+      await RS.completeTask(t, e.target.checked, tasks);
+      renderWork();
+    });
+    document.addEventListener('click', async e => {
+      const b = e.target.closest('#ctasks [data-del]'); if (!b) return;
+      const id = b.closest('li').dataset.tid; await store.remove('tasks', id); tasks = tasks.filter(t => t.id !== id); renderWork();
+    });
+
     /* ---------- customer dialog ---------- */
     const dlg = document.getElementById('cdlg'), form = document.getElementById('cform');
+    const CFIELDS = ['name', 'email', 'phone', 'household', 'location', 'status', 'address', 'home', 'vehicles', 'pets', 'emergency_contacts', 'notes'];
     let editing = null;
     function openCustomer(c) {
       editing = c || null; form.reset();
       document.getElementById('cdlg-title').textContent = c ? 'Edit customer' : 'New customer';
       document.getElementById('cdelete').hidden = !c;
-      if (c) for (const k of ['name', 'email', 'phone', 'household', 'location', 'status', 'notes']) form.elements[k].value = c[k] || (k === 'status' ? 'Intake' : '');
+      if (c) for (const k of CFIELDS) form.elements[k].value = c[k] || (k === 'status' ? 'Intake' : '');
       dlg.showModal(); form.elements.name.focus();
     }
     document.getElementById('new-customer').addEventListener('click', () => openCustomer(null));
     dlg.addEventListener('close', async () => {
       if (dlg.returnValue !== 'save') return;
-      const data = {}; for (const k of ['name', 'email', 'phone', 'household', 'location', 'status', 'notes']) data[k] = form.elements[k].value.trim() || null;
+      const data = {}; for (const k of CFIELDS) data[k] = form.elements[k].value.trim() || null;
       data.status = data.status || 'Intake';
       if (!data.name) return;
-      if (editing) { Object.assign(editing, await store.update('customers', editing.id, data)); toast('Saved'); }
-      else { const r = await store.insert('customers', data); customers.push(r); currentId = r.id; toast('Customer added'); }
+      const where = data.address || data.location;
+      const moved = !editing || where !== (editing.address || editing.location);
+      let rec;
+      if (editing) { rec = Object.assign(editing, await store.update('customers', editing.id, data)); toast('Saved'); }
+      else { rec = await store.insert('customers', data); customers.push(rec); currentId = rec.id; toast('Customer added'); }
       customers.sort((a, b) => a.name.localeCompare(b.name));
       select(currentId);
+      if (moved) { // place them on the map
+        const pt = where ? await RS.geocode(where) : null;
+        const patch = pt ? { lat: pt.lat, lng: pt.lng } : { lat: null, lng: null };
+        try { Object.assign(rec, await store.update('customers', rec.id, patch)); } catch (e) {}
+        if (where && !pt) toast('Saved, but that location could not be found on the map', true);
+      }
     });
     document.getElementById('cdelete').addEventListener('click', async () => {
       if (!editing) return;

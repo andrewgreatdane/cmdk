@@ -115,6 +115,11 @@
     .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
     .chk { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--ink-2); }
     .chk input { accent-color: #000; }
+    .af { display: flex; gap: 8px; align-items: end; }
+    .af .btn { padding: 6px 12px; }
+    .afmsg { margin: -6px 0 0; font-size: 12px; color: var(--ink-3); min-height: 0; }
+    .afmsg:empty { display: none; }
+    .afmsg.bad { color: #a3271b; }
     .imgprev { display: flex; gap: 12px; align-items: center; }
     .imgprev img { width: 56px; height: 56px; object-fit: contain; border: 1px solid var(--rule-soft); }
 
@@ -146,7 +151,7 @@
       <label for="markup">Default markup ×</label><input id="markup" type="number" step="0.05" min="0.5" max="10">
     </div>
     <div class="nav">
-      <a href="customers.html">Customers</a><a href="gear.html" aria-current="page">Master gear</a><a href="training.html">Training</a>
+      <a href="customers.html">Customers</a><a href="map.html">Map</a><a href="gear.html" aria-current="page">Master gear</a><a href="training.html">Training</a><a href="schedule.html">Schedule</a>
       <span class="sp"></span><span id="demo"></span><span class="who" id="who"></span><a href="#" id="signout">Sign out</a>
     </div>
   </div>
@@ -159,7 +164,8 @@
       <label><input type="checkbox" id="showarch"> Show archived</label>
       <span class="sp"></span>
       <button type="button" class="btn" id="addcat">+ New capability</button>
-      <button type="button" class="btn solid" id="additem">+ New item</button>
+      <button type="button" class="btn" id="additem">+ New item</button>
+      <button type="button" class="btn solid" id="addlink">+ Add from link</button>
     </div>
     <div id="sections"></div>
     <p class="note">Cost is what we pay, in the supplier's currency; USD is converted at the rate above. Client price defaults to cost × markup unless an item has its own price set. Volumes marked ≈ are estimates. EST = supplier price couldn't be confirmed.</p>
@@ -169,13 +175,14 @@
     <form method="dialog" id="iform">
       <div class="dh"><h3 id="idlg-t">Item</h3><button class="btn" value="cancel" formnovalidate>Close</button></div>
       <div class="db">
+        <div class="af"><label class="f" style="flex:1">Product link<input name="url" type="url" placeholder="Paste a product page link"></label><button type="button" class="btn solid" id="afbtn">Auto-fill</button></div>
+        <p class="afmsg" id="afmsg"></p>
         <label class="f">Name<input name="name" required></label>
         <label class="f">Description<textarea name="description"></textarea></label>
         <div class="g2">
           <label class="f">Capability<select name="category_id"></select></label>
           <label class="f">Source (shown as link text)<input name="source" placeholder="pelican.com"></label>
         </div>
-        <label class="f">Product URL<input name="url" type="url" placeholder="https://"></label>
         <div class="g3">
           <label class="f">Our cost<input name="price" type="number" step="0.01" min="0" required></label>
           <label class="f">Currency<select name="currency"><option>CAD</option><option>USD</option></select></label>
@@ -330,11 +337,43 @@
       for (const k of ['name', 'description', 'source', 'url', 'price', 'currency', 'sell_cad', 'volume_l', 'capacity_l', 'thumb']) if (iform.elements[k]) iform.elements[k].value = v[k] != null ? v[k] : '';
       iform.elements.category_id.value = v.category_id || '';
       for (const k of ['volume_est', 'price_est', 'archived']) iform.elements[k].checked = !!v[k];
-      preview(); idlg.showModal(); iform.elements.name.focus();
+      $('#afmsg').textContent = ''; $('#afmsg').className = 'afmsg';
+      preview(); idlg.showModal(); (g ? iform.elements.name : iform.elements.url).focus();
     }
     function preview() { const u = iform.elements.thumb.value.trim(), im = $('#iprev'); im.hidden = !u; if (u) im.src = u; }
     iform.elements.thumb.addEventListener('input', preview);
     $('#additem').addEventListener('click', () => openItem(null));
+    $('#addlink').addEventListener('click', () => openItem(null));
+
+    /* AI auto-fill from a product link */
+    async function autofill() {
+      const url = iform.elements.url.value.trim(), msg = $('#afmsg'), btn = $('#afbtn');
+      msg.className = 'afmsg';
+      if (!/^https?:\/\//i.test(url)) { msg.textContent = 'Paste a full product link first (https://…).'; msg.className = 'afmsg bad'; return; }
+      if (!RS.live) { msg.textContent = 'Auto-fill works once you are signed in to the live admin.'; msg.className = 'afmsg bad'; return; }
+      btn.disabled = true; btn.textContent = 'Reading…'; msg.textContent = 'Reading the page and filling in what it can (about 10 seconds)…';
+      try {
+        const r = await fetch('/api/autofill', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (await RS.auth.token()) }, body: JSON.stringify({ url, categories: cats.map(c => c.name) }) });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'Auto-fill failed');
+        const set = (k, v) => { if (v != null && v !== '' && iform.elements[k]) iform.elements[k].value = v; };
+        set('name', d.name); set('description', d.description); set('source', d.source);
+        set('price', d.price); set('currency', d.currency === 'USD' ? 'USD' : 'CAD');
+        set('volume_l', d.volume_l); set('capacity_l', d.capacity_l); set('thumb', d.image);
+        iform.elements.price_est.checked = !!d.price_est || d.price == null; iform.elements.volume_est.checked = true;
+        if (d.category) {
+          const hit = cats.find(c => c.name.toLowerCase() === String(d.category).toLowerCase());
+          const sel = iform.elements.category_id;
+          if (hit) sel.value = hit.id;
+          else { [...sel.querySelectorAll('option[data-new]')].forEach(o => o.remove()); sel.insertAdjacentHTML('beforeend', `<option value="new:${esc(d.category)}" data-new>+ New capability: ${esc(d.category)}</option>`); sel.value = 'new:' + d.category; }
+        }
+        preview();
+        msg.textContent = 'Filled in. Check the price, size and capability before saving.';
+      } catch (e) { msg.textContent = e.message; msg.className = 'afmsg bad'; }
+      finally { btn.disabled = false; btn.textContent = 'Auto-fill'; }
+    }
+    $('#afbtn').addEventListener('click', autofill);
+    iform.elements.url.addEventListener('paste', () => setTimeout(() => { if (!iform.elements.name.value) autofill(); }, 50));
     idlg.addEventListener('close', async () => {
       if (idlg.returnValue !== 'save') return;
       const num = k => iform.elements[k].value === '' ? null : Number(iform.elements[k].value);
@@ -346,6 +385,9 @@
         volume_est: iform.elements.volume_est.checked, price_est: iform.elements.price_est.checked, archived: iform.elements.archived.checked,
       };
       if (!data.name) return;
+      if (data.category_id && data.category_id.startsWith('new:')) { // AI suggested a new capability
+        const c = await store.insert('categories', { name: data.category_id.slice(4), sort: cats.length }); cats.push(c); data.category_id = c.id;
+      }
       if (editing) { Object.assign(editing, await store.update('gear', editing.id, data)); toast('Saved'); }
       else {
         data.sort = Math.max(-1, ...gear.filter(x => x.category_id === data.category_id).map(x => x.sort)) + 1;

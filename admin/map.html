@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Customer Map | Resilience Systems Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="admin.css">
+  <style>
+    html, body { height: 100%; }
+    body { display: flex; flex-direction: column; }
+    .wrap { flex: 1; display: grid; grid-template-columns: 280px 1fr; min-height: 0; }
+    .side { border-right: 1px solid var(--rule-soft); overflow: auto; padding: 16px 0; }
+    .side .h2 { margin: 0 20px; }
+    .side ul { list-style: none; margin: 0; padding: 0; }
+    .side li button { width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--rule-soft); padding: 9px 20px; cursor: pointer; display: grid; gap: 1px; }
+    .side li button:hover { background: var(--hover); }
+    .side .nm { font-weight: 500; font-size: 14px; }
+    .side .mt { font-size: 12px; color: var(--ink-3); }
+    .side .off .nm { color: var(--ink-3); }
+    .side .note { padding: 10px 20px; font-size: 12px; color: var(--ink-3); }
+    #map { min-height: 400px; background: #f2f2f2; }
+    .leaflet-container { font-family: var(--sans); }
+    .dot { width: 14px; height: 14px; border-radius: 50%; background: #000; border: 2px solid #fff; box-shadow: 0 0 0 1px #000; }
+    .dot.active { background: #fff; box-shadow: 0 0 0 2px #000; }
+    .leaflet-popup-content-wrapper { border-radius: 0; border: 2px solid #000; box-shadow: none; }
+    .leaflet-popup-content { margin: 12px 14px; font-size: 13px; line-height: 1.45; min-width: 180px; }
+    .pop .nm { font-weight: 600; font-size: 15px; }
+    .pop .mt { color: var(--ink-3); }
+    .pop .num { font-family: var(--mono); }
+    .pop a.btn, .leaflet-container .pop a.btn { display: inline-block; margin-top: 8px; text-decoration: none; color: #000; }
+    .leaflet-container .pop a.btn:hover { color: #fff; }
+    @media (max-width: 760px) { .wrap { grid-template-columns: 1fr; grid-template-rows: 55vh auto; } .side { order: 2; border-right: 0; border-top: 1px solid var(--rule); } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <aside class="side"><h2 class="h2"><span>Customers</span><span class="sub" id="cnt"></span></h2><ul id="list"></ul><p class="note" id="note"></p></aside>
+    <div id="map" role="region" aria-label="Customer map"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="config.js"></script>
+  <script src="seed.js"></script>
+  <script src="core.js"></script>
+  <script>
+  (async function () {
+    const { store, esc, money } = RS;
+    const user = await RS.auth.guard();
+    RS.header('map.html', user);
+    const [customers, cg, gear, S, members] = await Promise.all([store.list('customers'), store.list('customer_gear'), store.list('gear'), RS.settings(), store.list('members').catch(() => [])]);
+    customers.sort((a, b) => a.name.localeCompare(b.name));
+
+    const map = L.map('map', { zoomControl: true }).setView([49.28, -123.12], 9); // Vancouver
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19, subdomains: 'abcd',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    }).addTo(map);
+
+    const markers = {};
+    const icon = (active) => L.divIcon({ className: '', html: `<div class="dot ${active ? 'active' : ''}"></div>`, iconSize: [14, 14], iconAnchor: [7, 7], popupAnchor: [0, -8] });
+    function popup(c) {
+      const lines = cg.filter(x => x.customer_id === c.id);
+      const total = lines.reduce((t, l) => { const g = gear.find(x => x.id === l.gear_id); return g ? t + money.sellCAD(g, S, l.sell_cad) * l.qty : t; }, 0);
+      const n = members.filter(m => m.customer_id === c.id).length;
+      return `<div class="pop"><div class="nm">${esc(c.name)}</div>
+        <div class="mt">${esc(c.status || 'Intake')} · ${esc(c.address || c.location || '')}</div>
+        <div>${n ? n + ' in household · ' : ''}<span class="num">${lines.length} items · ${money.cad(total)}</span></div>
+        ${c.phone ? `<div>${esc(c.phone)}</div>` : ''}
+        <a class="btn" href="customers.html?id=${c.id}">Open customer</a></div>`;
+    }
+    function place(c) {
+      if (c.lat == null || c.lng == null) return;
+      const m = L.marker([c.lat, c.lng], { icon: icon(false), title: c.name }).addTo(map).bindPopup(popup(c));
+      markers[c.id] = m;
+    }
+    function renderList() {
+      document.getElementById('cnt').textContent = `${Object.keys(markers).length} of ${customers.length} mapped`;
+      document.getElementById('list').innerHTML = customers.map(c => `<li class="${markers[c.id] ? '' : 'off'}"><button type="button" data-id="${c.id}"><span class="nm">${esc(c.name)}</span><span class="mt">${esc(c.address || c.location || 'No location yet')}</span></button></li>`).join('');
+    }
+    customers.forEach(place);
+    const pts = Object.values(markers).map(m => m.getLatLng());
+    if (pts.length > 1) map.fitBounds(L.latLngBounds(pts).pad(0.3), { maxZoom: 12 }); else if (pts.length === 1) map.setView(pts[0], 11);
+    renderList();
+
+    document.getElementById('list').addEventListener('click', e => {
+      const b = e.target.closest('button[data-id]'); if (!b) return;
+      const m = markers[b.dataset.id];
+      if (m) { map.setView(m.getLatLng(), Math.max(map.getZoom(), 12)); m.openPopup(); }
+      else location.href = 'customers.html?id=' + b.dataset.id;
+    });
+
+    // place anyone with a location but no pin yet (1 lookup per second)
+    const todo = customers.filter(c => (c.address || c.location) && (c.lat == null || c.lng == null));
+    const note = document.getElementById('note');
+    for (const c of todo) {
+      note.textContent = `Finding ${c.name} on the map…`;
+      const pt = await RS.geocode(c.address || c.location);
+      if (!pt) continue;
+      try { Object.assign(c, await store.update('customers', c.id, { lat: pt.lat, lng: pt.lng })); } catch (e) { c.lat = pt.lat; c.lng = pt.lng; }
+      place(c); renderList();
+    }
+    note.textContent = customers.some(c => !markers[c.id]) ? 'Grey names have no location yet. Add a city or address in Edit details.' : '';
+  })();
+  </script>
+</body>
+</html>

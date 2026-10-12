@@ -4,12 +4,12 @@
   const CFG = window.RS_CONFIG || {};
   const LIVE = !!(CFG.SUPABASE_URL && CFG.SUPABASE_KEY && window.supabase);
   const sb = LIVE ? window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY) : null;
-  const TABLES = ['settings', 'categories', 'gear', 'customers', 'customer_gear', 'modules', 'customer_modules'];
+  const TABLES = ['settings', 'categories', 'gear', 'customers', 'customer_gear', 'modules', 'customer_modules', 'tasks', 'members'];
   const LS_KEY = 'rs-admin-demo-v1';
 
   /* ---------- local backend ---------- */
   function lsLoad() {
-    try { const d = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); if (d) return d; } catch (e) {}
+    try { const d = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); if (d) { TABLES.forEach(t => (d[t] = d[t] || [])); return d; } } catch (e) {}
     const d = {}; TABLES.forEach(t => (d[t] = [])); return d;
   }
   let mem = LIVE ? null : lsLoad();
@@ -28,7 +28,7 @@
     async remove(t, id) {
       mem[t] = mem[t].filter(x => x.id !== id);
       // emulate FK cascades
-      if (t === 'customers') { mem.customer_gear = mem.customer_gear.filter(x => x.customer_id !== id); mem.customer_modules = mem.customer_modules.filter(x => x.customer_id !== id); }
+      if (t === 'customers') { mem.customer_gear = mem.customer_gear.filter(x => x.customer_id !== id); mem.customer_modules = mem.customer_modules.filter(x => x.customer_id !== id); mem.tasks = mem.tasks.filter(x => x.customer_id !== id); mem.members = mem.members.filter(x => x.customer_id !== id); }
       if (t === 'gear') mem.customer_gear = mem.customer_gear.filter(x => x.gear_id !== id);
       if (t === 'modules') mem.customer_modules = mem.customer_modules.filter(x => x.module_id !== id);
       if (t === 'categories') mem.gear.forEach(g => { if (g.category_id === id) g.category_id = null; });
@@ -68,6 +68,7 @@
       if (error) throw error;
     },
     async setPassword(pw) { const { error } = await sb.auth.updateUser({ password: pw }); if (error) throw error; },
+    async token() { if (!LIVE) return null; const { data } = await sb.auth.getSession(); return data.session ? data.session.access_token : null; },
     async signOut() { if (LIVE) await sb.auth.signOut(); sessionStorage.removeItem(DEMO_USER); location.href = 'index.html'; },
     async current() {
       if (!LIVE) {
@@ -139,9 +140,9 @@
     clearTimeout(toast._t); toast._t = setTimeout(() => (el.className = ''), 2600);
   }
   function header(active, user) {
-    const nav = [['customers.html', 'Customers'], ['gear.html', 'Master gear'], ['training.html', 'Training']];
+    const nav = [['customers.html', 'Customers'], ['map.html', 'Map'], ['gear.html', 'Master gear'], ['training.html', 'Training'], ['schedule.html', 'Schedule']];
     const h = document.createElement('header'); h.className = 'adm-header';
-    const title = { 'customers.html': 'Customers', 'gear.html': 'Master Gear', 'training.html': 'Training' }[active] || 'Admin';
+    const title = { 'customers.html': 'Customers', 'map.html': 'Map', 'gear.html': 'Master Gear', 'training.html': 'Training', 'schedule.html': 'Schedule' }[active] || 'Admin';
     h.innerHTML = `
       <div class="adm-top"><a href="../index.html" class="adm-name">Resilience Systems · ${title}<small>Admin</small></a><div class="adm-slot" id="adm-slot"></div></div>
       <nav class="adm-nav adm-user" aria-label="Admin">${nav.map(([href, label]) => `<a href="${href}" ${active === href ? 'aria-current="page"' : ''}>${label}</a>`).join('')}
@@ -150,5 +151,35 @@
     h.querySelector('#adm-signout').addEventListener('click', () => auth.signOut());
   }
 
-  window.RS = { store, auth, ensureSeed, settings, money, esc, toast, header, live: LIVE, uid };
+  /* geocoding (OpenStreetMap Nominatim, max 1 request/sec) */
+  let lastGeo = 0;
+  async function geocode(q) {
+    if (!q || !q.trim()) return null;
+    const wait = Math.max(0, 1100 - (Date.now() - lastGeo)); if (wait) await new Promise(r => setTimeout(r, wait));
+    lastGeo = Date.now();
+    try {
+      const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q), { headers: { 'Accept-Language': 'en' } });
+      const j = await r.json(); if (j && j[0]) return { lat: parseFloat(j[0].lat), lng: parseFloat(j[0].lon) };
+    } catch (e) {}
+    return null;
+  }
+  const fmtDate = d => d ? new Date(d + (String(d).length === 10 ? 'T12:00:00' : '')).toLocaleDateString('en-CA', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+
+  // Tick a task done/undone. Finishing an annual check books the next one a year out.
+  async function completeTask(t, done, list) {
+    const patch = { done_at: done ? new Date().toISOString() : null };
+    Object.assign(t, await store.update('tasks', t.id, patch));
+    if (done && t.kind === 'Annual check' && t.customer_id) {
+      const d = new Date(t.due_date + 'T12:00:00'); d.setFullYear(d.getFullYear() + 1);
+      const next = d.toISOString().slice(0, 10);
+      if (!list.some(x => x.customer_id === t.customer_id && x.kind === 'Annual check' && !x.done_at && x.due_date === next)) {
+        list.push(await store.insert('tasks', { customer_id: t.customer_id, kind: 'Annual check', title: t.title, due_date: next, assignee: t.assignee, done_at: null }));
+        toast('Next annual check booked for ' + fmtDate(next));
+      }
+    }
+  }
+  const TASK_KINDS =['Consultation', 'Delivery', 'Training session', 'Annual check', 'Refresh / restock', 'Follow-up', 'Other'];
+  const ADMIN_NAMES = (CFG.ADMINS || []).map(a => a.name);
+
+  window.RS = { geocode, fmtDate, TASK_KINDS, ADMIN_NAMES, completeTask, store, auth, ensureSeed, settings, money, esc, toast, header, live: LIVE, uid };
 })();
