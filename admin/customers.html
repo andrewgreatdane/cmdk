@@ -28,6 +28,7 @@
     .c-head h1 { margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -.01em; }
     .c-meta { font-size: 13px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 2px 14px; margin-top: 4px; }
     .c-meta span:empty { display: none; }
+    .c-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .c-notes { margin: 6px 0 0; font-size: 13px; color: var(--ink-3); max-width: 70ch; white-space: pre-wrap; }
 
     /* totals live in the top bar, like the gear page */
@@ -162,6 +163,7 @@
       <div class="clients-head">
         <input class="inp" id="csearch" type="search" placeholder="Search customers" aria-label="Search customers">
         <button class="btn btn-solid" id="new-customer" type="button">+ New customer</button>
+        <button class="adm-link" id="blank-intake" type="button" style="justify-self:start">Copy blank intake form link</button>
       </div>
       <ul class="clist" id="clist"></ul>
     </aside>
@@ -297,10 +299,14 @@
       const rows = customers.filter(c => !q || [c.name, c.email, c.location, c.status].join(' ').toLowerCase().includes(q));
             document.getElementById('clist').innerHTML = rows.length ? rows.map(c => {
         const n = cg.filter(x => x.customer_id === c.id).reduce((s, x) => s + x.qty, 0);
-        return `<li><button type="button" data-id="${c.id}" ${c.id === currentId ? 'aria-current="true"' : ''}><span class="nm">${esc(c.name)}</span><span class="mt">${esc(c.status || 'Intake')} · ${n} item${n === 1 ? '' : 's'}</span></button></li>`;
+        return `<li><button type="button" data-id="${c.id}" ${c.id === currentId ? 'aria-current="true"' : ''}><span class="nm">${esc(c.name)}</span><span class="mt">${esc(c.status || 'Intake')} · ${n} item${n === 1 ? '' : 's'}${c.intake_submitted_at ? ' · intake in' : ''}</span></button></li>`;
       }).join('') : `<li class="empty">${customers.length ? 'No match.' : 'No customers yet.'}</li>`;
     }
     document.getElementById('csearch').addEventListener('input', renderList);
+    document.getElementById('blank-intake').addEventListener('click', async () => {
+      const url = location.origin + '/intake.html';
+      try { await navigator.clipboard.writeText(url); toast('Blank intake link copied. New submissions appear here as customers.'); } catch (e) { prompt('Copy this link:', url); }
+    });
     document.getElementById('clist').addEventListener('click', e => {
       const b = e.target.closest('button[data-id]'); if (!b) return;
       select(b.dataset.id);
@@ -348,9 +354,10 @@
           <div>
             <h1>${esc(c.name)}</h1>
             <div class="c-meta"><span>${esc(c.status || 'Intake')}</span><span>${esc(c.location || '')}</span><span>${esc(c.email || '')}</span><span>${esc(c.phone || '')}</span></div>
+            ${c.intake_submitted_at ? `<p class="c-notes">Intake received ${RS.fmtDate(c.intake_submitted_at.slice(0, 10))}</p>` : ''}
             ${nextTask ? `<p class="c-notes">Next: ${esc(nextTask.kind)}${nextTask.title ? ' — ' + esc(nextTask.title) : ''} · ${RS.fmtDate(nextTask.due_date)}</p>` : ''}
           </div>
-          <button class="btn" type="button" id="edit-c">Edit details</button>
+          <div class="c-actions"><button class="btn" type="button" id="intake-link" title="Copy a private link the client can use to fill in their own details">Copy intake link</button><button class="btn" type="button" id="edit-c">Edit details</button></div>
         </div>
         <nav class="tabs" role="tablist">
           ${[['onboarding', `Onboarding${nMem ? ' (' + nMem + ')' : ''}`], ['gear', 'Gear'], ['training', 'Training'], ['schedule', 'Schedule']].map(([k, l]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${tab === k}">${l}</button>`).join('')}
@@ -365,7 +372,9 @@
             <div>
               <h2 class="h2"><span>Home &amp; logistics</span><button type="button" class="adm-link" id="edit-c2">Edit</button></h2>
               <dl class="facts">
-                ${[['Address', c.address], ['Household', c.household], ['Home', c.home], ['Vehicles', c.vehicles], ['Pets', c.pets], ['Emergency contacts', c.emergency_contacts], ['Notes', c.notes]].map(([k, v]) => `<dt>${k}</dt><dd>${v ? esc(v) : '<span class="muted">—</span>'}</dd>`).join('')}
+                ${[['Address', c.address], ['Household', c.household], ['Home', c.home], ['Vehicles', c.vehicles], ['Pets', c.pets], ['Emergency contacts', c.emergency_contacts],
+                  ...(c.intake ? [['Concerns', (c.intake.concerns || []).join(', ')], ['Timeline', c.intake.timeline], ['Other locations', c.intake.other_locations], ['Contact by', c.intake.contact_pref], ['Heard about us', c.intake.referral], ['Client notes', c.intake.notes]] : []),
+                  ['Our notes', c.notes]].map(([k, v]) => `<dt>${k}</dt><dd>${v ? esc(v) : '<span class="muted">—</span>'}</dd>`).join('')}
               </dl>
             </div>
           </div>
@@ -404,6 +413,12 @@
         </section>`;
       document.querySelectorAll('.tabs [data-tab]').forEach(b => b.addEventListener('click', () => { tab = b.dataset.tab; try { localStorage.setItem('rs-ctab', tab); } catch (e) {} renderWork(); }));
       document.getElementById('edit-c2').addEventListener('click', () => openCustomer(c));
+      document.getElementById('intake-link').addEventListener('click', async () => {
+        if (!c.intake_token) { const tok = RS.uid(); try { Object.assign(c, await store.update('customers', c.id, { intake_token: tok })); } catch (e) { return; } }
+        const url = location.origin + '/intake.html?t=' + c.intake_token;
+        try { await navigator.clipboard.writeText(url); toast('Intake link copied. Send it to the client.'); }
+        catch (e) { prompt('Copy this link and send it to the client:', url); }
+      });
       document.getElementById('add-member').addEventListener('click', () => openMember(c, null));
       document.getElementById('taskform').addEventListener('submit', async e => {
         e.preventDefault(); const f = e.target.elements;
