@@ -38,7 +38,7 @@
 
     .cols { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px; align-items: start; margin-bottom: 48px; }
     .side { position: sticky; top: 128px; }
-    .colhead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+    .colhead { display: flex; min-width: 0; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 4px; }
     .colhead .inp { max-width: 200px; font-size: 13px; padding: 4px 8px; }
     .hint { font-size: 12px; color: var(--ink-3); margin: 6px 0 0; }
 
@@ -65,6 +65,20 @@
     .gi .sub { font-size: 12px; color: var(--ink-3); }
     .gi .pr { font-family: var(--mono); font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
+    /* capability bands: catalog left, package right */
+    .band { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); column-gap: 32px; align-items: start; }
+    .bandhead { margin-bottom: 4px; }
+    #bands .band { margin-top: 22px; }
+    .bh { width: 100%; background: none; border: 0; border-bottom: 1px solid var(--rule); text-align: left; cursor: pointer; font-family: inherit; color: var(--ink); }
+    .bh.right { cursor: default; }
+    .bh .t { flex: 1; }
+    button.bh::before { content: "\2013"; font-family: var(--mono); font-size: 14px; width: 1em; flex: none; }
+    .band.closed button.bh::before { content: "+"; }
+    button.bh:hover .t { text-decoration: underline; text-underline-offset: 3px; }
+    .band.closed .gl, .band.closed .pk { display: none; }
+    .band.closed .bh { border-bottom-color: var(--rule-soft); }
+    .band.none-in .bh.right .t { color: var(--ink-3); }
+    .band .pk { min-height: 0; }
     /* package */
     .pk { list-style: none; margin: 0; padding: 0; min-height: 60px; }
     .pk-none { padding: 6px 0 8px; color: var(--ink-3); font-size: 13px; border-bottom: 1px solid var(--rule-soft); }
@@ -133,6 +147,9 @@
       .clients { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--rule-soft); max-height: 280px; padding-top: 16px; }
       .cols { grid-template-columns: 1fr; }
       .side { position: static; }
+      .band { grid-template-columns: 1fr; }
+      .bh.right { margin-top: 10px; }
+      .bandhead .colhead:last-child { display: none; }
       .work { padding: 20px 16px 60px; }
       .adm-slot .amt { font-size: 24px; }
     }
@@ -355,17 +372,12 @@
         </section>
 
         <section data-pane="gear" ${tab === 'gear' ? '' : 'hidden'}>
-          <div class="cols">
-            <div>
-              <div class="colhead"><span class="lbl">Catalog — click to add</span><input class="inp" type="search" id="gsearch" placeholder="Filter gear" aria-label="Filter gear" value="${esc(catQuery)}"></div>
-              <div id="catalog"></div>
-            </div>
-            <div class="side">
-              <div class="colhead"><span class="lbl">Their package</span><span class="lbl" id="pk-count"></span></div>
-              <ul class="pk" id="package"></ul>
-              <p class="hint">Price box = client price per unit. Leave blank to use the catalog price.</p>
-            </div>
+          <div class="band bandhead">
+            <div class="colhead"><span class="lbl">Catalog — click to add or remove</span><input class="inp" type="search" id="gsearch" placeholder="Filter gear" aria-label="Filter gear" value="${esc(catQuery)}"></div>
+            <div class="colhead"><span class="lbl">Their package</span><span class="lbl" id="pk-count"></span></div>
           </div>
+          <div id="bands"></div>
+          <p class="hint">Price box = client price per unit. Leave blank to use the catalog price.</p>
         </section>
 
         <section data-pane="training" ${tab === 'training' ? '' : 'hidden'}>
@@ -409,31 +421,58 @@
 
     function inPkg(c, gid) { return cg.find(x => x.customer_id === c.id && x.gear_id === gid); }
 
+    // One band per capability: catalog on the left, their picks on the right, headers level.
     function renderCatalog(c) {
-      const host = document.getElementById('catalog'); if (!host) return;
+      const host = document.getElementById('bands'); if (!host) return;
       const q = catQuery.trim().toLowerCase();
-      const groups = [...cats, { id: null, name: 'Unsorted' }];
+      const keyOf = g => cats.some(k => k.id === g.category_id) ? g.category_id : 'none';
+      const lines = cg.filter(x => x.customer_id === c.id && gearById(x.gear_id));
+      document.getElementById('pk-count').textContent = lines.length ? `${lines.length} line${lines.length === 1 ? '' : 's'}` : '';
+      const groups = [...cats, { id: 'none', name: 'Unsorted' }];
       host.innerHTML = groups.map(cat => {
-        const items = gear.filter(g => (g.category_id || null) === cat.id && !g.archived && (!q || (g.name + ' ' + (g.description || '') + ' ' + (g.source || '')).toLowerCase().includes(q)));
-        if (!items.length) return '';
-        const nOn = items.filter(g => inPkg(c, g.id)).length;
-        const open = q || !openCats || openCats[cat.id || 'none'] !== false;
-        return `<details class="cat" data-cat="${cat.id || 'none'}" ${open ? 'open' : ''}><summary><h3 class="h2"><span class="t">${esc(cat.name)}</span><span class="sub">${nOn} of ${items.length}</span></h3></summary>
-          <ul class="gl" data-cat="${cat.id || 'none'}">${items.map(g => {
-            const on = !!inPkg(c, g.id);
-            return `<li class="gi ${on ? 'on' : ''}" data-gid="${g.id}" role="button" tabindex="0" aria-pressed="${on}">
-              <span class="box" aria-hidden="true"></span>
-              ${g.thumb ? `<img class="th" src="${esc(g.thumb)}" alt="" loading="lazy">` : '<span class="th none"></span>'}
-              <span><span class="nm">${esc(g.name)}</span><br><span class="sub">${esc(g.source || '')}${g.volume_l ? ` · ${g.volume_est ? '≈' : ''}${g.volume_l} L` : ''}${g.capacity_l ? ` · holds ${g.capacity_l} L` : ''}</span></span>
-              <span class="pr">${money.cad(money.sellCAD(g, S))}</span></li>`;
-          }).join('')}</ul></details>`;
+        const all = gear.filter(g => keyOf(g) === cat.id && !g.archived);
+        const items = all.filter(g => !q || (g.name + ' ' + (g.description || '') + ' ' + (g.source || '')).toLowerCase().includes(q));
+        const mine = lines.filter(l => keyOf(gearById(l.gear_id)) === cat.id).sort((x, y) => gearById(x.gear_id).sort - gearById(y.gear_id).sort);
+        if (cat.id === 'none' && !all.length && !mine.length) return '';
+        if (q && !items.length && !mine.length) return '';
+        const sub = mine.reduce((t, l) => t + money.sellCAD(gearById(l.gear_id), S, l.sell_cad) * l.qty, 0);
+        const open = !!q || !openCats || openCats[cat.id] !== false;
+        const left = items.length ? items.map(g => {
+          const on = !!inPkg(c, g.id);
+          return `<li class="gi ${on ? 'on' : ''}" data-gid="${g.id}" role="button" tabindex="0" aria-pressed="${on}">
+            <span class="box" aria-hidden="true"></span>
+            ${g.thumb ? `<img class="th" src="${esc(g.thumb)}" alt="" loading="lazy">` : '<span class="th none"></span>'}
+            <span><span class="nm">${esc(g.name)}</span><br><span class="sub">${esc(g.source || '')}${g.volume_l ? ` · ${g.volume_est ? '≈' : ''}${g.volume_l} L` : ''}${g.capacity_l ? ` · holds ${g.capacity_l} L` : ''}</span></span>
+            <span class="pr">${money.cad(money.sellCAD(g, S))}</span></li>`;
+        }).join('') : `<li class="pk-none">${all.length ? 'No match.' : 'No gear in this capability yet. Add some in Master gear.'}</li>`;
+        const right = mine.length ? mine.map(l => {
+          const g = gearById(l.gear_id), unit = money.sellCAD(g, S, l.sell_cad);
+          return `<li class="pi" data-lid="${l.id}">
+            <span class="nm">${esc(g.name)}${g.archived ? ' <span class="sub">(archived)</span>' : ''}</span>
+            <span class="qty"><button type="button" data-q="-1" aria-label="Fewer">−</button><input type="number" min="1" max="99" value="${l.qty}" aria-label="Quantity"><button type="button" data-q="1" aria-label="More">+</button></span>
+            <input class="unit ${l.sell_cad != null ? 'custom' : ''}" type="number" step="0.01" min="0" placeholder="${money.sellCAD(g, S).toFixed(2)}" value="${l.sell_cad != null ? l.sell_cad : ''}" aria-label="Unit price for this client (CAD)" title="Client unit price, CAD">
+            <span class="line">${money.cad(unit * l.qty)}</span>
+            <button class="x" type="button" aria-label="Remove ${esc(g.name)}">×</button></li>`;
+        }).join('') : '<li class="pk-none">Nothing yet</li>';
+        return `<div class="band ${open ? '' : 'closed'} ${mine.length ? '' : 'none-in'}" data-cat="${cat.id}">
+          <button type="button" class="h2 bh" data-toggle aria-expanded="${open}"><span class="t">${esc(cat.name)}</span><span class="sub">${mine.length} of ${all.length}</span></button>
+          <div class="h2 bh right"><span class="t">${esc(cat.name)}</span><span class="sub">${mine.length ? money.cad(sub) : '—'}</span></div>
+          <ul class="gl" data-cat="${cat.id}">${left}</ul>
+          <ul class="pk" data-cat="${cat.id}">${right}</ul>
+        </div>`;
       }).join('') || '<p class="tl-empty">No gear matches.</p>';
-      host.querySelectorAll('details.cat').forEach(d => d.addEventListener('toggle', () => {
-        if (catQuery) return; openCats = openCats || {}; openCats[d.dataset.cat] = d.open;
+      host.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('click', () => {
+        const band = b.closest('.band'); band.classList.toggle('closed');
+        b.setAttribute('aria-expanded', !band.classList.contains('closed'));
+        if (!catQuery) { openCats = openCats || {}; openCats[band.dataset.cat] = !band.classList.contains('closed'); }
       }));
       host.querySelectorAll('.gl').forEach(ul => Sortable.create(ul, {
         group: { name: 'gear', pull: 'clone', put: false }, sort: false, animation: 120,
-        filter: '.on', preventOnFilter: false, delay: 80, delayOnTouchOnly: true,
+        filter: '.on, .pk-none', preventOnFilter: false, delay: 80, delayOnTouchOnly: true,
+      }));
+      host.querySelectorAll('.pk').forEach(ul => Sortable.create(ul, {
+        group: { name: 'gear', pull: false, put: true }, sort: false,
+        onAdd(evt) { const gid = evt.item.dataset.gid; evt.item.remove(); if (gid && !inPkg(c, gid)) toggleGear(c, gid); },
       }));
     }
     document.addEventListener('click', e => {
@@ -463,33 +502,7 @@
       if (focusGid) { const el = document.querySelector(`.gi[data-gid="${focusGid}"]`); if (el && document.activeElement === document.body) el.focus({ preventScroll: true }); }
     }
 
-    function renderPackage(c) {
-      const host = document.getElementById('package'); if (!host) return;
-      const order = id => { const g = gearById(id); const ci = cats.findIndex(k => k.id === (g && g.category_id)); return (ci < 0 ? 999 : ci) * 10000 + (g ? g.sort : 0); };
-      const lines = cg.filter(x => x.customer_id === c.id && gearById(x.gear_id)).sort((a, b) => order(a.gear_id) - order(b.gear_id));
-      document.getElementById('pk-count').textContent = lines.length ? `${lines.length} line${lines.length === 1 ? '' : 's'}` : '';
-      const groups = [...cats, { id: 'none', name: 'Unsorted' }];
-      const keyOf = g => cats.some(k => k.id === g.category_id) ? g.category_id : 'none';
-      host.innerHTML = groups.map(cat => {
-        const mine = lines.filter(l => keyOf(gearById(l.gear_id)) === cat.id);
-        if (cat.id === 'none' && !mine.length) return '';
-        const sub = mine.reduce((t, l) => t + money.sellCAD(gearById(l.gear_id), S, l.sell_cad) * l.qty, 0);
-        return `<li class="pk-cat ${mine.length ? '' : 'empty'}"><span>${esc(cat.name)}</span><span>${mine.length ? money.cad(sub) : '—'}</span></li>` +
-          (mine.length ? mine.map(l => {
-            const g = gearById(l.gear_id), unit = money.sellCAD(g, S, l.sell_cad);
-            return `<li class="pi" data-lid="${l.id}">
-          <span class="nm">${esc(g.name)}${g.archived ? ' <span class="sub">(archived)</span>' : ''}</span>
-          <span class="qty"><button type="button" data-q="-1" aria-label="Fewer">−</button><input type="number" min="1" max="99" value="${l.qty}" aria-label="Quantity"><button type="button" data-q="1" aria-label="More">+</button></span>
-          <input class="unit ${l.sell_cad != null ? 'custom' : ''}" type="number" step="0.01" min="0" placeholder="${money.sellCAD(g, S).toFixed(2)}" value="${l.sell_cad != null ? l.sell_cad : ''}" aria-label="Unit price for this client (CAD)" title="Client unit price, CAD">
-          <span class="line">${money.cad(unit * l.qty)}</span>
-          <button class="x" type="button" aria-label="Remove ${esc(g.name)}">×</button></li>`;
-          }).join('') : '<li class="pk-none">Nothing yet</li>');
-      }).join('');
-      Sortable.create(host, {
-        group: { name: 'gear', pull: false, put: true }, sort: false,
-        onAdd(evt) { const gid = evt.item.dataset.gid; evt.item.remove(); if (gid && !inPkg(c, gid)) toggleGear(c, gid); },
-      });
-    }
+    function renderPackage() { /* drawn inside renderCatalog bands */ }
     document.addEventListener('click', async e => {
       const pi = e.target.closest('.pi'); if (!pi) return;
       const l = cg.find(x => x.id === pi.dataset.lid); if (!l) return;
