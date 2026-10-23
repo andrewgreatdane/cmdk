@@ -5,89 +5,118 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>Private Intake | Resilience Systems</title>
+  <script>try { if (localStorage.getItem('rs-intake-theme') === 'light') document.documentElement.dataset.theme = 'light'; } catch (e) {}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;500;600&family=Geist:wght@300;400;500;600&family=Space+Grotesk:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    :root { --ink:#08090a; --panel:#101214; --panel-2:#15181b; --paper:#e5e6e7; --muted:#989da3; --dim:#5e656b; --line:rgba(229,230,231,.14); --line-2:rgba(229,230,231,.28); }
+    :root { --bg:#08090a; --panel:#101214; --panel-2:#15181b; --fg:#e5e6e7; --soft:#b2b7bb; --muted:#989da3; --dim:#5e656b; --line:rgba(229,230,231,.14); --line-2:rgba(229,230,231,.28); --err:#e3a194; --btn-hover:#fff; color-scheme: dark; }
+    :root[data-theme="light"] { --bg:#ffffff; --panel:#fafafa; --panel-2:#f2f2f2; --fg:#000000; --soft:#3a3a3a; --muted:#5a5a5a; --dim:#7a7a7a; --line:#d9d9d9; --line-2:#000000; --err:#a3341f; --btn-hover:#2a2a2a; color-scheme: light; }
     * { box-sizing: border-box; }
-    html, body { margin: 0; background: var(--ink); color: var(--paper); font-family: 'Geist', system-ui, sans-serif; font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    html, body { margin: 0; background: var(--bg); color: var(--fg); font-family: 'Geist', system-ui, sans-serif; font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    body { transition: background .25s, color .25s; }
     a { color: inherit; }
     button, input, select, textarea { font: inherit; color: inherit; }
-    :focus-visible { outline: 1px solid var(--paper); outline-offset: 2px; }
+    :focus-visible { outline: 1px solid var(--fg); outline-offset: 2px; }
     [hidden] { display: none !important; }
     .eyebrow { font-family: 'Space Grotesk', sans-serif; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
     header { border-bottom: 1px solid var(--line); }
     .wrap { max-width: 820px; margin: 0 auto; padding: 0 24px; }
-    .top { height: 76px; display: flex; align-items: center; justify-content: space-between; }
+    .top { height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .top-r { display: flex; align-items: center; gap: 20px; }
     .brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; }
     .emblem { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 34px; border: 1px solid var(--line-2); font-family: 'Antonio', sans-serif; font-size: 22px; }
-    .emblem span { color: #858b91; }
+    .emblem span { color: var(--muted); }
     .bname { font-size: 9px; line-height: 1.6; font-weight: 500; letter-spacing: .11em; text-transform: uppercase; }
+    .theme { display: inline-flex; border: 1px solid var(--line-2); }
+    .theme button { background: none; border: 0; padding: 6px 10px; cursor: pointer; font-family: 'Space Grotesk', sans-serif; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+    .theme button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
     .hero { padding: 64px 0 40px; }
     h1 { margin: 12px 0 18px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: clamp(44px, 8vw, 76px); line-height: .95; text-transform: uppercase; letter-spacing: .01em; }
-    h1 .outline { color: transparent; -webkit-text-stroke: 1px var(--paper); display: block; }
-    .lede { color: #b2b7bb; max-width: 58ch; margin: 0; }
+    h1 .outline { color: transparent; -webkit-text-stroke: 1px var(--fg); display: block; }
+    .lede { color: var(--soft); max-width: 58ch; margin: 0; }
     .note { font-size: 12px; color: var(--muted); margin-top: 14px; max-width: 64ch; }
+    .steps { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 28px 0 0; padding: 0; list-style: none; }
+    .steps li { font-family: 'Space Grotesk', sans-serif; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+    .steps li b { color: var(--muted); font-weight: 500; margin-right: 6px; }
 
     form section { border-top: 1px solid var(--line); padding: 36px 0 12px; }
     .sh { display: flex; gap: 14px; align-items: baseline; margin-bottom: 20px; }
     .sh .n { font-family: 'Space Grotesk', sans-serif; font-size: 11px; color: var(--dim); }
     .sh h2 { margin: 0; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 28px; text-transform: uppercase; letter-spacing: .02em; }
-    .sh p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .sh p { margin: 4px 0 0; color: var(--muted); font-size: 13px; max-width: 62ch; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
     .f { display: grid; gap: 6px; margin-bottom: 16px; }
     .grid .f, .grid3 .f { margin-bottom: 0; }
     .grid, .grid3 { margin-bottom: 16px; }
     .f > span { font-family: 'Space Grotesk', sans-serif; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-    input, select, textarea { width: 100%; background: transparent; border: 0; border-bottom: 1px solid var(--line-2); padding: 10px 0; border-radius: 0; color: var(--paper); }
-    select { background: var(--ink); }
+    .f > span i { font-style: normal; color: var(--dim); text-transform: none; letter-spacing: .02em; }
+    input, select, textarea { width: 100%; background: transparent; border: 0; border-bottom: 1px solid var(--line-2); padding: 10px 0; border-radius: 0; color: var(--fg); }
+    select { background: var(--bg); }
     .person select { background: var(--panel); }
     textarea { min-height: 72px; resize: vertical; border: 1px solid var(--line-2); padding: 10px 12px; }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--paper); }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--fg); }
     ::placeholder { color: var(--dim); }
+    .narrow { max-width: 260px; }
     .checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin-bottom: 16px; }
     .checks label { display: flex; gap: 10px; align-items: center; border: 1px solid var(--line); padding: 12px 14px; cursor: pointer; font-size: 14px; transition: border-color .2s, background .2s; }
     .checks label:hover { border-color: var(--line-2); }
-    .checks label:has(input:checked) { border-color: var(--paper); background: var(--panel-2); }
-    .checks input { width: auto; accent-color: #e5e6e7; }
+    .checks label:has(input:checked) { border-color: var(--fg); background: var(--panel-2); }
+    .checks input, .mod > label input, .consent input { width: auto; accent-color: var(--fg); }
 
     .mods { display: grid; gap: 8px; margin-bottom: 16px; }
     .mod { display: grid; grid-template-columns: 1fr 150px; gap: 16px; align-items: center; border: 1px solid var(--line); padding: 10px 14px; transition: border-color .2s, background .2s; }
-    .mod:has(input[type=checkbox]:checked) { border-color: var(--paper); background: var(--panel-2); }
+    .mod:has(input[type=checkbox]:checked) { border-color: var(--fg); background: var(--panel-2); }
     .mod > label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: 14px; }
-    .mod > label input { width: auto; margin-top: 4px; accent-color: #e5e6e7; }
+    .mod > label input { margin-top: 4px; }
     .mod small { display: block; color: var(--dim); font-size: 12px; }
     .mod .cost { display: flex; align-items: baseline; gap: 4px; color: var(--muted); }
     .mod .cost input { padding: 6px 0; text-align: right; }
-    .mod .cost input:disabled { opacity: .3; }
     .mods-head { display: grid; grid-template-columns: 1fr 150px; gap: 16px; padding: 0 14px; margin-bottom: 4px; }
     .mods-head span:last-child { text-align: right; }
+    .mods-total { display: flex; justify-content: space-between; padding: 4px 14px 0; font-size: 13px; color: var(--muted); }
+    .mods-total b { color: var(--fg); font-weight: 500; font-variant-numeric: tabular-nums; }
+
     .person { border: 1px solid var(--line); background: var(--panel); padding: 22px 22px 6px; margin-bottom: 16px; }
     .person .ph { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
     .person .ph b { font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 20px; text-transform: uppercase; letter-spacing: .03em; }
-    .person .sub { font-family: 'Space Grotesk', sans-serif; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin: 6px 0 12px; }
+    .person .sub { font-family: 'Space Grotesk', sans-serif; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin: 8px 0 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+    .meds { display: grid; gap: 8px; margin-bottom: 8px; }
+    .med { display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: end; }
+    .med .x { background: none; border: 0; color: var(--dim); cursor: pointer; font-size: 18px; line-height: 1; padding: 8px 2px; }
+    .med .x:hover { color: var(--fg); }
+    .hint { font-size: 12px; color: var(--dim); margin: 0 0 8px; }
     .link { background: none; border: 0; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; font-size: 12px; padding: 0; }
-    .link:hover { color: #fff; }
+    .link:hover { color: var(--fg); }
+    .add-med { margin: 4px 0 18px; }
     .btn { display: inline-flex; align-items: center; justify-content: space-between; gap: 28px; padding: 15px 20px; border: 1px solid var(--line-2); background: transparent; font-size: 12px; font-weight: 500; letter-spacing: .04em; cursor: pointer; transition: border-color .3s, background .3s; }
-    .btn:hover { border-color: var(--paper); }
-    .btn-primary { background: var(--paper); color: var(--ink); border-color: var(--paper); min-width: 240px; }
-    .btn-primary:hover { background: #fff; }
+    .btn:hover { border-color: var(--fg); }
+    .btn-primary { background: var(--fg); color: var(--bg); border-color: var(--fg); min-width: 240px; }
+    .btn-primary:hover { background: var(--btn-hover); }
     .btn[disabled] { opacity: .6; cursor: wait; }
-    .consent { display: flex; gap: 12px; align-items: flex-start; font-size: 13px; color: #b2b7bb; margin: 8px 0 24px; }
-    .consent input { width: auto; margin-top: 4px; accent-color: #e5e6e7; }
+    .consent { display: flex; gap: 12px; align-items: flex-start; font-size: 13px; color: var(--soft); margin: 8px 0 24px; }
+    .consent input { margin-top: 4px; }
     .submit { border-top: 1px solid var(--line); padding: 32px 0 80px; }
-    .err { color: #e3a194; font-size: 13px; min-height: 20px; margin: 0 0 12px; }
+    .err { color: var(--err); font-size: 13px; min-height: 20px; margin: 0 0 12px; }
     .hp { position: absolute; left: -9999px; }
     .done { padding: 80px 0 120px; }
     .done h2 { font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 48px; text-transform: uppercase; margin: 12px 0 16px; line-height: 1; }
-    @media (max-width: 640px) { .grid, .grid3 { grid-template-columns: 1fr; } .mod, .mods-head { grid-template-columns: 1fr 110px; gap: 10px; } .wrap { padding: 0 16px; } .hero { padding: 40px 0 28px; } .person { padding: 18px 16px 4px; } .btn-primary { width: 100%; } }
+    @media (max-width: 640px) {
+      .grid, .grid3 { grid-template-columns: 1fr; } .wrap { padding: 0 16px; } .hero { padding: 40px 0 28px; }
+      .person { padding: 18px 16px 4px; } .btn-primary { width: 100%; }
+      .mod, .mods-head { grid-template-columns: 1fr 110px; gap: 10px; }
+      .med { grid-template-columns: 1fr auto; gap: 8px 12px; } .med > label:nth-child(2) { grid-column: 1; grid-row: 2; } .med .x { grid-row: 1 / 3; grid-column: 2; }
+      .top-r .eyebrow { display: none; }
+    }
   </style>
 </head>
 <body>
   <header><div class="wrap top">
     <a href="index.html" class="brand" aria-label="Resilience Systems"><span class="emblem" aria-hidden="true">R<span>/</span></span><span class="bname">Resilience<br>Systems</span></a>
-    <span class="eyebrow">Private intake</span>
+    <div class="top-r">
+      <span class="eyebrow">Private intake</span>
+      <div class="theme" role="group" aria-label="Page colours"><button type="button" data-t="dark">Dark</button><button type="button" data-t="light">Light</button></div>
+    </div>
   </div></header>
 
   <main class="wrap">
@@ -97,58 +126,62 @@
         <h1>Your <span class="outline">Household</span></h1>
         <p class="lede">This tells us who we're preparing for, so every case, kit and training session is built around the people who will use it. Fill in what you can. We'll go over the rest with you in person.</p>
         <p class="note" id="prefill-note" hidden>We've filled in what we already have. Check it and add anything that's missing.</p>
+        <ol class="steps" aria-label="Sections"><li><b>01</b>You</li><li><b>02</b>Household</li><li><b>03</b>Beyond your home</li><li><b>04</b>Places</li><li><b>05</b>Concerns</li><li><b>06</b>Capabilities</li><li><b>07</b>Timing</li></ol>
       </div>
 
       <form id="intake" novalidate>
         <input class="hp" type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true">
 
         <section>
-          <div class="sh"><span class="n">01</span><div><h2>Contact</h2></div></div>
+          <div class="sh"><span class="n">01</span><div><h2>You</h2><p>How we reach you.</p></div></div>
           <label class="f"><span>Full name</span><input name="c.name" required autocomplete="name"></label>
           <div class="grid">
             <label class="f"><span>Email</span><input name="c.email" type="email" autocomplete="email"></label>
             <label class="f"><span>Phone</span><input name="c.phone" type="tel" autocomplete="tel"></label>
           </div>
-          <label class="f"><span>Home address</span><input name="c.address" autocomplete="street-address" placeholder="Street, city, province"></label>
-          <div class="grid">
-            <label class="f"><span>City</span><input name="c.city" autocomplete="address-level2"></label>
-            <label class="f"><span>Best way to reach you</span><select name="i.contact_pref"><option value="">—</option><option>Phone</option><option>Text</option><option>Email</option></select></label>
-          </div>
+          <label class="f narrow"><span>Best way to reach you</span><select name="i.contact_pref"><option value="">—</option><option>Phone</option><option>Text</option><option>Email</option></select></label>
         </section>
 
         <section>
-          <div class="sh"><span class="n">02</span><div><h2>Home &amp; logistics</h2><p>What we'll be protecting and working around.</p></div></div>
-          <label class="f"><span>Home</span><textarea name="c.home" placeholder="Type of home, floors, basement, generator, where things could be stored"></textarea></label>
-          <div class="grid">
-            <label class="f"><span>Vehicles</span><input name="c.vehicles" placeholder="Make, model, year"></label>
-            <label class="f"><span>Pets</span><input name="c.pets" placeholder="Type, size, any needs"></label>
-          </div>
-          <label class="f"><span>Other locations</span><input name="i.other_locations" placeholder="Office, cabin, school, a parent's home"></label>
-          <label class="f"><span>Emergency contacts outside the household</span><textarea name="c.emergency_contacts" placeholder="Name, relationship, phone. One per line."></textarea></label>
-        </section>
-
-        <section>
-          <div class="sh"><span class="n">03</span><div><h2>Who lives with you</h2><p>Add each person, including you. Sizes and health details let us pack the right clothing, medication and supplies.</p></div></div>
+          <div class="sh"><span class="n">02</span><div><h2>Your household</h2><p>Everyone who lives with you, starting with you. Sizes let us pack the right clothing. We don't need medical details, only how any medicine has to be stored.</p></div></div>
           <div id="people"></div>
           <button type="button" class="btn" id="add-person">Add another person <span aria-hidden="true">+</span></button>
         </section>
 
         <section>
-          <div class="sh"><span class="n">04</span><div><h2>Extended family &amp; dependents</h2><p>People outside your home you'd want covered, and anything that relies on you.</p></div></div>
-          <label class="f" style="max-width:260px"><span>Extended family to include</span><input name="i.extended_count" type="number" min="0" max="50" step="1" inputmode="numeric" placeholder="0"></label>
-          <label class="f"><span>Their needs and capability</span><textarea name="i.extended_needs" placeholder="Who they are, where they live, and what they could manage on their own. Age, mobility, medication, whether they could get to you."></textarea></label>
-          <label class="f"><span>Other dependents and dependencies</span><textarea name="i.dependencies" placeholder="Anyone or anything relying on you, or that you rely on: a parent in care, staff, a business, livestock, a caregiver, powered medical equipment."></textarea></label>
+          <div class="sh"><span class="n">03</span><div><h2>Beyond your home</h2><p>People outside your household you'd want covered, and anyone or anything that relies on you.</p></div></div>
+          <label class="f narrow"><span>Extended family to include</span><input name="i.extended_count" type="number" min="0" max="50" step="1" inputmode="numeric" placeholder="e.g. 2"></label>
+          <label class="f"><span>Who they are and what they'd need</span><textarea name="i.extended_needs" placeholder="Where they live, how far from you, and what they could manage on their own. Age, mobility, whether they could get to you."></textarea></label>
+          <label class="f"><span>Pets</span><input name="c.pets" placeholder="Type, size, any needs"></label>
+          <label class="f"><span>Other dependents and dependencies</span><textarea name="i.dependencies" placeholder="A parent in care, staff, a business, livestock, a caregiver you rely on, equipment that needs power."></textarea></label>
+          <label class="f"><span>Emergency contacts outside the household</span><textarea name="c.emergency_contacts" placeholder="Name, relationship, phone. One per line."></textarea></label>
         </section>
 
         <section>
-          <div class="sh"><span class="n">05</span><div><h2>Capabilities</h2><p>Choose the areas you want covered. Next to each, put your best guess at what it costs to be prepared, based on what you know today. There's no wrong answer.</p></div></div>
-          <div class="mods-head eyebrow"><span>Module</span><span>Your guess (CAD)</span></div>
-          <div class="mods" id="modules"></div>
+          <div class="sh"><span class="n">04</span><div><h2>Places</h2><p>Where we'll be building systems, and what we'll be working around.</p></div></div>
+          <div class="grid">
+            <label class="f"><span>Home address</span><input name="c.address" autocomplete="street-address" placeholder="Street"></label>
+            <label class="f"><span>City</span><input name="c.city" autocomplete="address-level2"></label>
+          </div>
+          <label class="f"><span>Your home</span><textarea name="c.home" placeholder="Type of home, floors, basement, generator, where things could be stored"></textarea></label>
+          <label class="f"><span>Vehicles</span><input name="c.vehicles" placeholder="Make, model, year"></label>
+          <label class="f"><span>Other places you spend time</span><input name="i.other_locations" placeholder="Office and how far from home, a cabin, school, a parent's home"></label>
         </section>
 
         <section>
-          <div class="sh"><span class="n">06</span><div><h2>What concerns you most</h2><p>Choose any that apply.</p></div></div>
+          <div class="sh"><span class="n">05</span><div><h2>What concerns you most</h2><p>Choose any that apply.</p></div></div>
           <div class="checks" id="concerns"></div>
+        </section>
+
+        <section>
+          <div class="sh"><span class="n">06</span><div><h2>Capabilities</h2><p>Choose the areas you want covered. Next to each, put your best guess at what it costs to be prepared, based on what you know today. There's no wrong answer.</p></div></div>
+          <div class="mods-head eyebrow"><span>Area</span><span>Your guess (CAD)</span></div>
+          <div class="mods" id="modules"></div>
+          <div class="mods-total" id="mods-total" hidden><span>Your total</span><b></b></div>
+        </section>
+
+        <section>
+          <div class="sh"><span class="n">07</span><div><h2>Timing</h2></div></div>
           <div class="grid">
             <label class="f"><span>When would you like to be ready?</span><select name="i.timeline"><option value="">—</option><option>As soon as possible</option><option>Within 3 months</option><option>Within 6 months</option><option>No fixed timeline</option></select></label>
             <label class="f"><span>How did you hear about us?</span><input name="i.referral"></label>
@@ -157,7 +190,7 @@
         </section>
 
         <div class="submit">
-          <label class="consent"><input type="checkbox" id="consent"> <span>I agree that Resilience Systems may store this information, including health details, to plan and maintain our household's preparedness. It is kept private and seen only by our team.</span></label>
+          <label class="consent"><input type="checkbox" id="consent"> <span>I agree that Resilience Systems may store this information to plan and maintain our household's preparedness. It is kept private and seen only by our team.</span></label>
           <p class="err" id="err" role="alert"></p>
           <button class="btn btn-primary" type="submit" id="send">Submit intake <span aria-hidden="true">→</span></button>
         </div>
@@ -181,48 +214,66 @@
       <div class="grid3">
         <label class="f"><span>Year born</span><input data-k="birth_year" inputmode="numeric" maxlength="4" placeholder="1984"></label>
         <label class="f"><span>Sex</span><select data-k="sex"><option value=""></option><option>Female</option><option>Male</option><option>Other</option></select></label>
-        <label class="f"><span>Blood type</span><input data-k="blood_type" placeholder="If known"></label>
+        <label class="f"><span>Prepare them for</span><select data-k="duration"><option value=""></option><option>72 hours</option><option>1 week</option><option>2 weeks</option><option>1 month</option><option>3 months</option><option>6 months or longer</option></select></label>
       </div>
+      <p class="sub">Sizes</p>
       <div class="grid">
         <label class="f"><span>Height</span><input data-k="height"></label>
         <label class="f"><span>Weight</span><input data-k="weight"></label>
       </div>
-      <label class="f"><span>How long should we prepare this person for?</span><select data-k="duration"><option value=""></option><option>72 hours</option><option>1 week</option><option>2 weeks</option><option>1 month</option><option>3 months</option><option>6 months or longer</option></select></label>
-      <p class="sub">Sizes</p>
       <div class="grid">
         <label class="f"><span>Top / jacket</span><input data-k="size_top"></label>
-        <label class="f"><span>Pants (waist × inseam)</span><input data-k="size_bottom"></label>
+        <label class="f"><span>Pants <i>(waist × inseam)</i></span><input data-k="size_bottom"></label>
       </div>
       <div class="grid">
         <label class="f"><span>Shoe</span><input data-k="size_shoe"></label>
         <label class="f"><span>Gloves / hat</span><input data-k="size_other"></label>
       </div>
-      <p class="sub">Health &amp; needs</p>
-      <label class="f"><span>Allergies</span><input data-k="allergies"></label>
-      <label class="f"><span>Medical conditions</span><textarea data-k="medical"></textarea></label>
-      <label class="f"><span>Medications (name and dose)</span><textarea data-k="medications"></textarea></label>
+      <p class="sub">Supplies</p>
+      <p class="hint">Medicine storage. Label each one however you like; we only need to know how it's kept.</p>
+      <div class="meds"></div>
+      <button type="button" class="link add-med">+ Add a medicine</button>
       <div class="grid">
-        <label class="f"><span>Diet</span><input data-k="diet" placeholder="Restrictions, infant formula…"></label>
-        <label class="f"><span>Mobility / other needs</span><input data-k="mobility" placeholder="Glasses, hearing aid, wheelchair…"></label>
+        <label class="f"><span>Food needs</span><input data-k="diet" placeholder="Foods to avoid, infant formula…"></label>
+        <label class="f"><span>Equipment</span><input data-k="mobility" placeholder="Glasses, hearing aid, wheelchair…"></label>
       </div>
       <label class="f"><span>Skills &amp; notes</span><textarea data-k="notes" placeholder="First aid training, radio licence, anything useful"></textarea></label>
+    </div>
+  </template>
+
+  <template id="med-tpl">
+    <div class="med">
+      <label class="f" style="margin:0"><span>Medicine</span><input class="mn" placeholder="Medicine A"></label>
+      <label class="f" style="margin:0"><span>Storage</span><select class="ms"><option value=""></option><option>Room temperature</option><option>Cool, below 25 °C</option><option>Refrigerated, 2–8 °C</option><option>Frozen</option><option>Away from light</option><option>Other</option></select></label>
+      <button type="button" class="x" aria-label="Remove medicine">×</button>
     </div>
   </template>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="admin/config.js"></script>
   <script>
+  // light / dark
+  (function () {
+    const btns = document.querySelectorAll('.theme button');
+    const mark = t => btns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.t === t)));
+    btns.forEach(b => b.addEventListener('click', () => {
+      const t = b.dataset.t;
+      if (t === 'light') document.documentElement.dataset.theme = 'light'; else delete document.documentElement.dataset.theme;
+      mark(t);
+      try { localStorage.setItem('rs-intake-theme', t); } catch (e) {}
+    }));
+    mark(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
+  })();
+
   (async function () {
     const CFG = window.RS_CONFIG;
     const sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY, { auth: { persistSession: false } });
     const token = new URLSearchParams(location.search).get('t');
     const CONCERNS = ['Earthquake', 'Extended power outage', 'Wildfire or smoke', 'Flooding or storms', 'Civil unrest', 'Evacuating quickly', 'Staying in place for weeks', 'Medical emergency', 'Losing phone and internet', 'Security at home', 'Being apart when it happens', 'Pandemic'];
-    const $ = s => document.querySelector(s);
-    const form = $('#intake');
     const MODULES = [
       ['Water', 'Storage, filtration, purification'],
       ['Food', 'Stored meals and nutrition for each person'],
-      ['Medical', 'Trauma, first aid, medication reserves'],
+      ['Medical', 'Trauma kit, first aid, medicine reserves'],
       ['Power & light', 'Batteries, solar, generator, lighting'],
       ['Communications', 'Radios, mesh network, family check-in plan'],
       ['Shelter & warmth', 'Heat, sleeping, weatherproofing'],
@@ -232,17 +283,43 @@
       ['Documents & cash', 'Copies, records, emergency funds'],
       ['Training', 'Drills and skills for the household'],
     ];
-    $('#modules').innerHTML = MODULES.map(([m, d], n) => `<div class="mod"><label><input type="checkbox" value="${m}" id="mod-${n}"> <span>${m}<small>${d}</small></span></label><span class="cost">$<input type="number" min="0" step="100" inputmode="numeric" placeholder="—" aria-label="${m}: your cost guess in dollars" disabled></span></div>`).join('');
-    document.querySelectorAll('#modules .mod').forEach(row => {
-      const cb = row.querySelector('input[type=checkbox]'), cost = row.querySelector('.cost input');
-      cb.addEventListener('change', () => { cost.disabled = !cb.checked; if (cb.checked) cost.focus(); });
-    });
+    const $ = s => document.querySelector(s);
+    const form = $('#intake');
     $('#concerns').innerHTML = CONCERNS.map(c => `<label><input type="checkbox" value="${c}"> ${c}</label>`).join('');
 
-    const people = $('#people'), tpl = $('#person-tpl');
+    // capabilities: typing a guess ticks the area; running total of guesses
+    $('#modules').innerHTML = MODULES.map(([m, d]) => `<div class="mod"><label><input type="checkbox" value="${m}"> <span>${m}<small>${d}</small></span></label><span class="cost">$<input type="number" min="0" step="100" inputmode="numeric" placeholder="—" aria-label="${m}: your cost guess in dollars"></span></div>`).join('');
+    const modRows = [...document.querySelectorAll('#modules .mod')];
+    const total = () => {
+      let t = 0, any = false;
+      modRows.forEach(r => { const g = r.querySelector('.cost input').value; if (g !== '' && r.querySelector('input[type=checkbox]').checked) { t += Math.max(0, Number(g) || 0); any = true; } });
+      $('#mods-total').hidden = !any; $('#mods-total b').textContent = '$' + Math.round(t).toLocaleString('en-CA');
+    };
+    modRows.forEach(r => {
+      const cb = r.querySelector('input[type=checkbox]'), cost = r.querySelector('.cost input');
+      cost.addEventListener('input', () => { if (cost.value !== '') cb.checked = true; total(); });
+      cb.addEventListener('change', total);
+    });
+
+    // household members
+    const people = $('#people'), tpl = $('#person-tpl'), medTpl = $('#med-tpl');
+    function addMed(host, name, storage) {
+      const row = medTpl.content.firstElementChild.cloneNode(true);
+      row.querySelector('.mn').value = name || '';
+      const sel = row.querySelector('.ms');
+      if (storage) { if (![...sel.options].some(o => o.value === storage)) sel.add(new Option(storage, storage)); sel.value = storage; }
+      row.querySelector('.x').addEventListener('click', () => row.remove());
+      host.appendChild(row); return row;
+    }
     function addPerson(d) {
       const el = tpl.content.firstElementChild.cloneNode(true);
       if (d) el.querySelectorAll('[data-k]').forEach(i => { if (d[i.dataset.k] != null) i.value = d[i.dataset.k]; });
+      const meds = el.querySelector('.meds');
+      (d && d.medicine_storage ? d.medicine_storage.split('\n') : []).forEach(line => {
+        const k = line.lastIndexOf(': ');
+        if (line.trim()) addMed(meds, k > -1 ? line.slice(0, k) : line, k > -1 ? line.slice(k + 2) : '');
+      });
+      el.querySelector('.add-med').addEventListener('click', () => addMed(meds).querySelector('.mn').focus());
       el.querySelector('.rm').addEventListener('click', () => { el.remove(); number(); });
       people.appendChild(el); number();
     }
@@ -256,10 +333,11 @@
       else {
         const c = data.customer || {}, i = c.intake || {};
         for (const k of ['name', 'email', 'phone', 'address', 'home', 'vehicles', 'pets', 'emergency_contacts']) if (c[k] && form.elements['c.' + k]) form.elements['c.' + k].value = c[k];
-        for (const k of ['contact_pref', 'other_locations', 'timeline', 'referral', 'notes', 'extended_count', 'extended_needs', 'dependencies']) if (i[k] && form.elements['i.' + k]) form.elements['i.' + k].value = i[k];
+        for (const k of ['contact_pref', 'other_locations', 'timeline', 'referral', 'notes', 'extended_count', 'extended_needs', 'dependencies']) if (i[k] != null && i[k] !== '' && form.elements['i.' + k]) form.elements['i.' + k].value = i[k];
         if (i.city) form.elements['c.city'].value = i.city;
         (i.concerns || []).forEach(v => { const b = [...document.querySelectorAll('#concerns input')].find(x => x.value === v); if (b) b.checked = true; });
-        (i.modules || []).forEach(x => { const row = [...document.querySelectorAll('#modules .mod')].find(r => r.querySelector('input[type=checkbox]').value === x.module); if (!row) return; row.querySelector('input[type=checkbox]').checked = true; const c = row.querySelector('.cost input'); c.disabled = false; if (x.guess != null) c.value = x.guess; });
+        (i.modules || []).forEach(x => { const r = modRows.find(r => r.querySelector('input[type=checkbox]').value === x.module); if (!r) return; r.querySelector('input[type=checkbox]').checked = true; if (x.guess != null) r.querySelector('.cost input').value = x.guess; });
+        total();
         (data.members || []).forEach(addPerson);
         $('#prefill-note').hidden = !(c.name);
       }
@@ -272,18 +350,29 @@
       if (form.elements._gotcha.value) return;
       const v = k => (form.elements[k] ? form.elements[k].value.trim() : '');
       if (!v('c.name')) { err.textContent = 'Please add your name.'; form.elements['c.name'].focus(); return; }
-      if (!v('c.email') && !v('c.phone')) { err.textContent = 'Please add an email or phone number so we can reach you.'; return; }
+      if (!v('c.email') && !v('c.phone')) { err.textContent = 'Please add an email or phone number so we can reach you.'; form.elements['c.email'].focus(); return; }
       if (!$('#consent').checked) { err.textContent = 'Please tick the consent box to submit.'; return; }
-      const members = [...people.children].map(p => { const o = {}; p.querySelectorAll('[data-k]').forEach(i => (o[i.dataset.k] = i.value.trim())); return o; }).filter(m => m.name);
+      const members = [...people.children].map(p => {
+        const o = {}; p.querySelectorAll('[data-k]').forEach(i => (o[i.dataset.k] = i.value.trim()));
+        o.medicine_storage = [...p.querySelectorAll('.med')].map(r => {
+          const n = r.querySelector('.mn').value.trim(), s = r.querySelector('.ms').value;
+          return n || s ? `${n || 'Medicine'}${s ? ': ' + s : ''}` : '';
+        }).filter(Boolean).join('\n');
+        return o;
+      }).filter(m => m.name);
+      const modules = modRows.filter(r => r.querySelector('input[type=checkbox]').checked).map(r => {
+        const g = r.querySelector('.cost input').value.trim();
+        return { module: r.querySelector('input[type=checkbox]').value, guess: g === '' ? null : Math.max(0, Math.round(Number(g) || 0)) };
+      });
       const payload = {
         customer: { name: v('c.name'), email: v('c.email'), phone: v('c.phone'), address: v('c.address'), city: v('c.city'), home: v('c.home'), vehicles: v('c.vehicles'), pets: v('c.pets'), emergency_contacts: v('c.emergency_contacts'), household: members.length ? `${members.length} ${members.length === 1 ? 'person' : 'people'}` : '' },
-        intake: { city: v('c.city'), contact_pref: v('i.contact_pref'), other_locations: v('i.other_locations'), timeline: v('i.timeline'), referral: v('i.referral'), notes: v('i.notes'), concerns: [...document.querySelectorAll('#concerns input:checked')].map(b => b.value), extended_count: v('i.extended_count'), extended_needs: v('i.extended_needs'), dependencies: v('i.dependencies'), modules: [...document.querySelectorAll('#modules .mod')].filter(r => r.querySelector('input[type=checkbox]').checked).map(r => { const g = r.querySelector('.cost input').value.trim(); return { module: r.querySelector('input[type=checkbox]').value, guess: g === '' ? null : Math.max(0, Math.round(Number(g))) }; }), consent_at: new Date().toISOString() },
+        intake: { city: v('c.city'), contact_pref: v('i.contact_pref'), other_locations: v('i.other_locations'), timeline: v('i.timeline'), referral: v('i.referral'), notes: v('i.notes'), concerns: [...document.querySelectorAll('#concerns input:checked')].map(b => b.value), extended_count: v('i.extended_count'), extended_needs: v('i.extended_needs'), dependencies: v('i.dependencies'), modules, consent_at: new Date().toISOString() },
         members,
       };
       const btn = $('#send'); btn.disabled = true; btn.firstChild.textContent = 'Sending… ';
       const { error } = await sb.rpc('intake_submit', { p_token: token || null, p: payload });
       if (error) { btn.disabled = false; btn.firstChild.textContent = 'Submit intake '; err.textContent = 'Something went wrong sending your intake. Please try again, or email andrew@unhingedventures.com.'; return; }
-      // heads-up email to the team (no health details)
+      // heads-up email to the team
       try { fetch('https://formspree.io/f/xqegpgov', { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ _subject: 'Intake submitted: ' + payload.customer.name, name: payload.customer.name, email: payload.customer.email, phone: payload.customer.phone, message: `${token ? 'Updated' : 'New'} intake for ${payload.customer.name} (${members.length} in household). Full details are in the admin.` }) }); } catch (x) {}
       $('#formview').hidden = true; $('#doneview').hidden = false; window.scrollTo(0, 0);
     });

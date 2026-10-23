@@ -235,6 +235,7 @@
         </div>
         <label class="field"><span class="lbl">Medical conditions</span><textarea name="medical"></textarea></label>
         <label class="field"><span class="lbl">Medications &amp; supply needed</span><textarea name="medications" placeholder="Name, dose, how many days on hand"></textarea></label>
+        <label class="field"><span class="lbl">Medicine storage (from intake)</span><textarea name="medicine_storage" placeholder="Medicine A: Refrigerated, 2–8 °C"></textarea></label>
         <div class="grid2">
           <label class="field"><span class="lbl">Diet</span><input name="diet" placeholder="e.g. gluten-free, infant formula"></label>
           <label class="field"><span class="lbl">Mobility / special needs</span><input name="mobility" placeholder="e.g. glasses, hearing aid, wheelchair"></label>
@@ -590,14 +591,14 @@
     });
 
     /* ---------- onboarding: household members ---------- */
-    const MFIELDS = ['name', 'relationship', 'birth_year', 'sex', 'height', 'weight', 'size_top', 'size_bottom', 'size_shoe', 'size_other', 'blood_type', 'allergies', 'medical', 'medications', 'diet', 'mobility', 'notes', 'duration'];
+    const MFIELDS = ['name', 'relationship', 'birth_year', 'sex', 'height', 'weight', 'size_top', 'size_bottom', 'size_shoe', 'size_other', 'blood_type', 'allergies', 'medical', 'medications', 'diet', 'mobility', 'notes', 'duration', 'medicine_storage'];
     function renderMembers(c) {
       const host = document.getElementById('members'); if (!host) return;
       const list = members.filter(m => m.customer_id === c.id).sort((a, b) => (a.sort || 0) - (b.sort || 0) || (a.birth_year || 0) - (b.birth_year || 0));
       const yr = new Date().getFullYear();
       host.innerHTML = list.length ? list.map(m => {
         const sizes = [m.size_top && 'Top ' + m.size_top, m.size_bottom && 'Pants ' + m.size_bottom, m.size_shoe && 'Shoe ' + m.size_shoe, m.size_other].filter(Boolean).join(' · ');
-        const flags = [m.allergies && 'Allergies: ' + m.allergies, m.medical && 'Medical: ' + m.medical, m.medications && 'Meds: ' + m.medications, m.mobility && m.mobility, m.diet && 'Diet: ' + m.diet].filter(Boolean).join(' · ');
+        const flags = [m.allergies && 'Allergies: ' + m.allergies, m.medical && 'Medical: ' + m.medical, m.medications && 'Meds: ' + m.medications, m.medicine_storage && 'Storage: ' + m.medicine_storage.split('\n').join(', '), m.mobility && m.mobility, m.diet && 'Diet: ' + m.diet].filter(Boolean).join(' · ');
         return `<li data-mid="${m.id}" tabindex="0"><span class="nm">${esc(m.name)}${m.relationship ? ` <span class="muted" style="font-weight:400">· ${esc(m.relationship)}</span>` : ''}</span>
           <span class="age">${m.birth_year ? (yr - m.birth_year) + ' yrs' : ''}${m.sex ? ' · ' + esc(m.sex) : ''}${m.duration ? ' · ' + esc(m.duration) : ''}</span>
           ${sizes ? `<span class="sub">${esc(sizes)}</span>` : ''}${flags ? `<span class="flag">${esc(flags)}</span>` : ''}</li>`;
