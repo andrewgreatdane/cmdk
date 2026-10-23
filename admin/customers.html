@@ -690,6 +690,7 @@
     dlg.addEventListener('close', async () => {
       if (dlg.returnValue !== 'save') return;
       const data = {}; for (const k of CFIELDS) data[k] = form.elements[k].value.trim() || null;
+      if (RS.live && customers.length && !('referred_by' in customers[0])) delete data.referred_by; // column not added yet
       data.status = data.status || 'Intake';
       if (!data.name) return;
       const where = data.address || data.location;
