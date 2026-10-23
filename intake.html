@@ -81,6 +81,8 @@
     .person .ph { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
     .person .ph b { font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 20px; text-transform: uppercase; letter-spacing: .03em; }
     .person .sub { font-family: 'Space Grotesk', sans-serif; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin: 8px 0 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+    .person .f.dist.off { visibility: hidden; }
+    .hint strong { color: var(--soft); font-weight: 500; }
     .meds { display: grid; gap: 8px; margin-bottom: 8px; }
     .med { display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: end; }
     .med .x { background: none; border: 0; color: var(--dim); cursor: pointer; font-size: 18px; line-height: 1; padding: 8px 2px; }
@@ -126,7 +128,7 @@
         <h1>Your <span class="outline">Household</span></h1>
         <p class="lede">This tells us who we're preparing for, so every case, kit and training session is built around the people who will use it. Fill in what you can. We'll go over the rest with you in person.</p>
         <p class="note" id="prefill-note" hidden>We've filled in what we already have. Check it and add anything that's missing.</p>
-        <ol class="steps" aria-label="Sections"><li><b>01</b>You</li><li><b>02</b>Household</li><li><b>03</b>Beyond your home</li><li><b>04</b>Places</li><li><b>05</b>Concerns</li><li><b>06</b>Capabilities</li><li><b>07</b>Timing</li></ol>
+        <ol class="steps" aria-label="Sections"><li><b>01</b>You</li><li><b>02</b>Your people</li><li><b>03</b>Dependents</li><li><b>04</b>Places</li><li><b>05</b>Concerns</li><li><b>06</b>Capabilities</li><li><b>07</b>Timing</li></ol>
       </div>
 
       <form id="intake" novalidate>
@@ -143,15 +145,13 @@
         </section>
 
         <section>
-          <div class="sh"><span class="n">02</span><div><h2>Your household</h2><p>Everyone who lives with you, starting with you. Sizes let us pack the right clothing. We don't need medical details, only how any medicine has to be stored.</p></div></div>
+          <div class="sh"><span class="n">02</span><div><h2>Your people</h2><p>Everyone you want covered, starting with you. Include family who live elsewhere. Sizes let us pack the right clothing.</p></div></div>
           <div id="people"></div>
           <button type="button" class="btn" id="add-person">Add another person <span aria-hidden="true">+</span></button>
         </section>
 
         <section>
-          <div class="sh"><span class="n">03</span><div><h2>Beyond your home</h2><p>People outside your household you'd want covered, and anyone or anything that relies on you.</p></div></div>
-          <label class="f narrow"><span>Extended family to include</span><input name="i.extended_count" type="number" min="0" max="50" step="1" inputmode="numeric" placeholder="e.g. 2"></label>
-          <label class="f"><span>Who they are and what they'd need</span><textarea name="i.extended_needs" placeholder="Where they live, how far from you, and what they could manage on their own. Age, mobility, whether they could get to you."></textarea></label>
+          <div class="sh"><span class="n">03</span><div><h2>Dependents &amp; contacts</h2><p>Anyone or anything that relies on you, and who we'd call.</p></div></div>
           <label class="f"><span>Pets</span><input name="c.pets" placeholder="Type, size, any needs"></label>
           <label class="f"><span>Other dependents and dependencies</span><textarea name="i.dependencies" placeholder="A parent in care, staff, a business, livestock, a caregiver you rely on, equipment that needs power."></textarea></label>
           <label class="f"><span>Emergency contacts outside the household</span><textarea name="c.emergency_contacts" placeholder="Name, relationship, phone. One per line."></textarea></label>
@@ -177,7 +177,7 @@
           <div class="sh"><span class="n">06</span><div><h2>Capabilities</h2><p>Choose the areas you want covered. Next to each, put your best guess at what it costs to be prepared, based on what you know today. There's no wrong answer.</p></div></div>
           <div class="mods-head eyebrow"><span>Area</span><span>Your guess (CAD)</span></div>
           <div class="mods" id="modules"></div>
-          <div class="mods-total" id="mods-total" hidden><span>Your total</span><b></b></div>
+          <label class="f narrow" style="margin-top:24px"><span>How long should you be able to manage on your own?</span><select name="i.duration"><option value="">—</option><option>72 hours</option><option>1 week</option><option>2 weeks</option><option>1 month</option><option>3 months</option><option>6 months or longer</option></select></label>
         </section>
 
         <section>
@@ -211,10 +211,13 @@
         <label class="f"><span>Name</span><input data-k="name"></label>
         <label class="f"><span>Relationship to you</span><input data-k="relationship" placeholder="Self, spouse, son…"></label>
       </div>
-      <div class="grid3">
+      <div class="grid">
         <label class="f"><span>Year born</span><input data-k="birth_year" inputmode="numeric" maxlength="4" placeholder="1984"></label>
         <label class="f"><span>Sex</span><select data-k="sex"><option value=""></option><option>Female</option><option>Male</option><option>Other</option></select></label>
-        <label class="f"><span>Prepare them for</span><select data-k="duration"><option value=""></option><option>72 hours</option><option>1 week</option><option>2 weeks</option><option>1 month</option><option>3 months</option><option>6 months or longer</option></select></label>
+      </div>
+      <div class="grid">
+        <label class="f"><span>Where they live</span><select data-k="lives"><option value=""></option><option>Same house</option><option>Same city</option><option>Different city</option></select></label>
+        <label class="f dist"><span>Approx. distance from you</span><input data-k="distance" placeholder="e.g. 20 min drive, 300 km"></label>
       </div>
       <p class="sub">Sizes</p>
       <div class="grid">
@@ -230,7 +233,7 @@
         <label class="f"><span>Gloves / hat</span><input data-k="size_other"></label>
       </div>
       <p class="sub">Supplies</p>
-      <p class="hint">Medicine storage. Label each one however you like; we only need to know how it's kept.</p>
+      <p class="hint">Medicine storage. <strong>Please don't name specific medicines.</strong> Use a label like Medicine A; we only need to know how each one is kept.</p>
       <div class="meds"></div>
       <button type="button" class="link add-med">+ Add a medicine</button>
       <div class="grid">
@@ -243,7 +246,7 @@
 
   <template id="med-tpl">
     <div class="med">
-      <label class="f" style="margin:0"><span>Medicine</span><input class="mn" placeholder="Medicine A"></label>
+      <label class="f" style="margin:0"><span>Label</span><input class="mn" placeholder="Medicine A" maxlength="40"></label>
       <label class="f" style="margin:0"><span>Storage</span><select class="ms"><option value=""></option><option>Room temperature</option><option>Cool, below 25 °C</option><option>Refrigerated, 2–8 °C</option><option>Frozen</option><option>Away from light</option><option>Other</option></select></label>
       <button type="button" class="x" aria-label="Remove medicine">×</button>
     </div>
@@ -319,6 +322,10 @@
         const k = line.lastIndexOf(': ');
         if (line.trim()) addMed(meds, k > -1 ? line.slice(0, k) : line, k > -1 ? line.slice(k + 2) : '');
       });
+      const lives = el.querySelector('[data-k=lives]'), dist = el.querySelector('.f.dist');
+      const syncDist = () => { const off = lives.value === 'Same house'; dist.classList.toggle('off', off); dist.querySelector('input').disabled = off; };
+      lives.addEventListener('change', syncDist); syncDist();
+      if (!d && !people.children.length) lives.value = 'Same house', syncDist();
       el.querySelector('.add-med').addEventListener('click', () => addMed(meds).querySelector('.mn').focus());
       el.querySelector('.rm').addEventListener('click', () => { el.remove(); number(); });
       people.appendChild(el); number();
@@ -333,7 +340,7 @@
       else {
         const c = data.customer || {}, i = c.intake || {};
         for (const k of ['name', 'email', 'phone', 'address', 'home', 'vehicles', 'pets', 'emergency_contacts']) if (c[k] && form.elements['c.' + k]) form.elements['c.' + k].value = c[k];
-        for (const k of ['contact_pref', 'other_locations', 'timeline', 'referral', 'notes', 'extended_count', 'extended_needs', 'dependencies']) if (i[k] != null && i[k] !== '' && form.elements['i.' + k]) form.elements['i.' + k].value = i[k];
+        for (const k of ['contact_pref', 'other_locations', 'timeline', 'referral', 'notes', 'dependencies', 'duration']) if (i[k] != null && i[k] !== '' && form.elements['i.' + k]) form.elements['i.' + k].value = i[k];
         if (i.city) form.elements['c.city'].value = i.city;
         (i.concerns || []).forEach(v => { const b = [...document.querySelectorAll('#concerns input')].find(x => x.value === v); if (b) b.checked = true; });
         (i.modules || []).forEach(x => { const r = modRows.find(r => r.querySelector('input[type=checkbox]').value === x.module); if (!r) return; r.querySelector('input[type=checkbox]').checked = true; if (x.guess != null) r.querySelector('.cost input').value = x.guess; });
@@ -354,6 +361,7 @@
       if (!$('#consent').checked) { err.textContent = 'Please tick the consent box to submit.'; return; }
       const members = [...people.children].map(p => {
         const o = {}; p.querySelectorAll('[data-k]').forEach(i => (o[i.dataset.k] = i.value.trim()));
+        if (o.lives === 'Same house') o.distance = '';
         o.medicine_storage = [...p.querySelectorAll('.med')].map(r => {
           const n = r.querySelector('.mn').value.trim(), s = r.querySelector('.ms').value;
           return n || s ? `${n || 'Medicine'}${s ? ': ' + s : ''}` : '';
@@ -365,8 +373,8 @@
         return { module: r.querySelector('input[type=checkbox]').value, guess: g === '' ? null : Math.max(0, Math.round(Number(g) || 0)) };
       });
       const payload = {
-        customer: { name: v('c.name'), email: v('c.email'), phone: v('c.phone'), address: v('c.address'), city: v('c.city'), home: v('c.home'), vehicles: v('c.vehicles'), pets: v('c.pets'), emergency_contacts: v('c.emergency_contacts'), household: members.length ? `${members.length} ${members.length === 1 ? 'person' : 'people'}` : '' },
-        intake: { city: v('c.city'), contact_pref: v('i.contact_pref'), other_locations: v('i.other_locations'), timeline: v('i.timeline'), referral: v('i.referral'), notes: v('i.notes'), concerns: [...document.querySelectorAll('#concerns input:checked')].map(b => b.value), extended_count: v('i.extended_count'), extended_needs: v('i.extended_needs'), dependencies: v('i.dependencies'), modules, consent_at: new Date().toISOString() },
+        customer: { name: v('c.name'), email: v('c.email'), phone: v('c.phone'), address: v('c.address'), city: v('c.city'), home: v('c.home'), vehicles: v('c.vehicles'), pets: v('c.pets'), emergency_contacts: v('c.emergency_contacts'), household: (() => { const home = members.filter(m => m.lives === 'Same house' || !m.lives).length, away = members.length - home; return members.length ? `${home} at home${away ? `, ${away} elsewhere` : ''}` : ''; })() },
+        intake: { city: v('c.city'), contact_pref: v('i.contact_pref'), other_locations: v('i.other_locations'), timeline: v('i.timeline'), referral: v('i.referral'), notes: v('i.notes'), concerns: [...document.querySelectorAll('#concerns input:checked')].map(b => b.value), dependencies: v('i.dependencies'), duration: v('i.duration'), modules, consent_at: new Date().toISOString() },
         members,
       };
       const btn = $('#send'); btn.disabled = true; btn.firstChild.textContent = 'Sending… ';

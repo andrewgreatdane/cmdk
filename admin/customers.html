@@ -227,7 +227,10 @@
           <label class="field"><span class="lbl">Shoe</span><input name="size_shoe"></label>
           <label class="field"><span class="lbl">Gloves / hat</span><input name="size_other"></label>
         </div>
-        <label class="field"><span class="lbl">Prepare for</span><select name="duration"><option value=""></option><option>72 hours</option><option>1 week</option><option>2 weeks</option><option>1 month</option><option>3 months</option><option>6 months or longer</option></select></label>
+        <div class="grid2">
+          <label class="field"><span class="lbl">Where they live</span><select name="lives"><option value=""></option><option>Same house</option><option>Same city</option><option>Different city</option></select></label>
+          <label class="field"><span class="lbl">Approx. distance</span><input name="distance" placeholder="e.g. 20 min drive"></label>
+        </div>
         <p class="msec">Health</p>
         <div class="grid2">
           <label class="field"><span class="lbl">Blood type</span><input name="blood_type"></label>
@@ -375,7 +378,7 @@
               <h2 class="h2"><span>Home &amp; logistics</span><button type="button" class="adm-link" id="edit-c2">Edit</button></h2>
               <dl class="facts">
                 ${[['Address', c.address], ['Household', c.household], ['Home', c.home], ['Vehicles', c.vehicles], ['Pets', c.pets], ['Emergency contacts', c.emergency_contacts],
-                  ...(c.intake ? [['Concerns', (c.intake.concerns || []).join(', ')], ['Extended family', [c.intake.extended_count, c.intake.extended_needs].filter(Boolean).join(' — ')], ['Dependencies', c.intake.dependencies], ['Modules (client guess)', (c.intake.modules || []).map(x => x.module + (x.guess != null ? ' $' + Number(x.guess).toLocaleString() : '')).join(', ') + ((c.intake.modules || []).some(x => x.guess != null) ? ' · total $' + (c.intake.modules || []).reduce((t, x) => t + (x.guess || 0), 0).toLocaleString() : '')], ['Timeline', c.intake.timeline], ['Other locations', c.intake.other_locations], ['Contact by', c.intake.contact_pref], ['Heard about us', c.intake.referral], ['Client notes', c.intake.notes]] : []),
+                  ...(c.intake ? [['Concerns', (c.intake.concerns || []).join(', ')], ['Self-sufficient for', c.intake.duration], ['Dependencies', c.intake.dependencies], ['Modules (client guess)', (c.intake.modules || []).map(x => x.module + (x.guess != null ? ' $' + Number(x.guess).toLocaleString() : '')).join(', ') + ((c.intake.modules || []).some(x => x.guess != null) ? ' · total $' + (c.intake.modules || []).reduce((t, x) => t + (x.guess || 0), 0).toLocaleString() : '')], ['Timeline', c.intake.timeline], ['Other locations', c.intake.other_locations], ['Contact by', c.intake.contact_pref], ['Heard about us', c.intake.referral], ['Client notes', c.intake.notes]] : []),
                   ['Our notes', c.notes]].map(([k, v]) => `<dt>${k}</dt><dd>${v ? esc(v) : '<span class="muted">—</span>'}</dd>`).join('')}
               </dl>
             </div>
@@ -591,7 +594,7 @@
     });
 
     /* ---------- onboarding: household members ---------- */
-    const MFIELDS = ['name', 'relationship', 'birth_year', 'sex', 'height', 'weight', 'size_top', 'size_bottom', 'size_shoe', 'size_other', 'blood_type', 'allergies', 'medical', 'medications', 'diet', 'mobility', 'notes', 'duration', 'medicine_storage'];
+    const MFIELDS = ['name', 'relationship', 'birth_year', 'sex', 'height', 'weight', 'size_top', 'size_bottom', 'size_shoe', 'size_other', 'blood_type', 'allergies', 'medical', 'medications', 'diet', 'mobility', 'notes', 'lives', 'distance', 'medicine_storage'];
     function renderMembers(c) {
       const host = document.getElementById('members'); if (!host) return;
       const list = members.filter(m => m.customer_id === c.id).sort((a, b) => (a.sort || 0) - (b.sort || 0) || (a.birth_year || 0) - (b.birth_year || 0));
@@ -600,7 +603,7 @@
         const sizes = [m.size_top && 'Top ' + m.size_top, m.size_bottom && 'Pants ' + m.size_bottom, m.size_shoe && 'Shoe ' + m.size_shoe, m.size_other].filter(Boolean).join(' · ');
         const flags = [m.allergies && 'Allergies: ' + m.allergies, m.medical && 'Medical: ' + m.medical, m.medications && 'Meds: ' + m.medications, m.medicine_storage && 'Storage: ' + m.medicine_storage.split('\n').join(', '), m.mobility && m.mobility, m.diet && 'Diet: ' + m.diet].filter(Boolean).join(' · ');
         return `<li data-mid="${m.id}" tabindex="0"><span class="nm">${esc(m.name)}${m.relationship ? ` <span class="muted" style="font-weight:400">· ${esc(m.relationship)}</span>` : ''}</span>
-          <span class="age">${m.birth_year ? (yr - m.birth_year) + ' yrs' : ''}${m.sex ? ' · ' + esc(m.sex) : ''}${m.duration ? ' · ' + esc(m.duration) : ''}</span>
+          <span class="age">${m.birth_year ? (yr - m.birth_year) + ' yrs' : ''}${m.sex ? ' · ' + esc(m.sex) : ''}${m.lives && m.lives !== 'Same house' ? ' · ' + esc(m.lives) + (m.distance ? ' (' + esc(m.distance) + ')' : '') : ''}</span>
           ${sizes ? `<span class="sub">${esc(sizes)}</span>` : ''}${flags ? `<span class="flag">${esc(flags)}</span>` : ''}</li>`;
       }).join('') : '<li class="empty">No one added yet. Start with the person you spoke to, then everyone in the household.</li>';
     }

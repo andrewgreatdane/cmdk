@@ -1,12 +1,13 @@
 -- 004: intake planning fields
--- Members gain duration (how long to prepare each person for) and medicine_storage
+-- Members gain lives / distance (same house, same city, different city + approx distance) and medicine_storage
 -- (storage needs only, e.g. "Medicine A: refrigerated"). The intake no longer asks for
 -- medical details: intake_get stops returning them, and intake_submit carries over any
 -- the team entered in admin (matched by name) instead of wiping them on resubmit.
--- Extended family, dependencies and capability modules (with the client's cost guess)
+-- Household self-sufficiency duration, dependencies and capability modules (with the client's cost guess)
 -- live in customers.intake (jsonb), so they need no columns.
 alter table public.members
-  add column if not exists duration text,
+  add column if not exists lives text,
+  add column if not exists distance text,
   add column if not exists medicine_storage text;
 
 create or replace function public.intake_get(p_token uuid)
@@ -60,14 +61,14 @@ begin
     if coalesce(trim(m->>'name'), '') <> '' then
       o := coalesce(prev->lower(trim(m->>'name')), '{}'::jsonb);
       insert into public.members (customer_id, sort, name, relationship, birth_year, sex, height, weight,
-        size_top, size_bottom, size_shoe, size_other, blood_type, allergies, medical, medications, diet, mobility, notes, duration, medicine_storage)
+        size_top, size_bottom, size_shoe, size_other, blood_type, allergies, medical, medications, diet, mobility, notes, lives, distance, medicine_storage)
       values (cid, i, left(trim(m->>'name'), 200), left(m->>'relationship', 100),
         case when (m->>'birth_year') ~ '^\d{4}$' then (m->>'birth_year')::int end,
         left(m->>'sex', 20), left(m->>'height', 40), left(m->>'weight', 40),
         left(m->>'size_top', 40), left(m->>'size_bottom', 40), left(m->>'size_shoe', 40), left(m->>'size_other', 80),
         o->>'blood_type', o->>'allergies', o->>'medical', o->>'medications',
         left(m->>'diet', 500), left(m->>'mobility', 500), left(m->>'notes', 2000),
-        left(nullif(m->>'duration', ''), 40), left(nullif(m->>'medicine_storage', ''), 2000));
+        left(nullif(m->>'lives', ''), 40), left(nullif(m->>'distance', ''), 120), left(nullif(m->>'medicine_storage', ''), 2000));
       i := i + 1;
     end if;
   end loop;
