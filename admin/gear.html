@@ -87,7 +87,7 @@
     td.what .src { font-size: 12px; color: var(--ink-3); }
     td.what .src a { color: var(--ink-3); }
     .tag { display: inline-block; font-family: var(--mono); font-size: 10px; letter-spacing: .08em; border: 1px solid var(--ink-3); color: var(--ink-3); padding: 0 4px; margin-left: 4px; vertical-align: 2px; }
-    td.vol { width: 90px; text-align: right; font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink-2); }
+    td.vol { width: 100px; text-align: right; font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink-2); }
     td.vol small { display: block; color: var(--ink-3); font-size: 11px; }
     td.price { width: 150px; text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
     td.price .orig { display: block; font-size: 12px; color: var(--ink-3); }
@@ -168,7 +168,7 @@
       <button type="button" class="btn solid" id="addlink">+ Add from link</button>
     </div>
     <div id="sections"></div>
-    <p class="note">Cost is what we pay, in the supplier's currency; USD is converted at the rate above. Client price defaults to cost × markup unless an item has its own price set. Volumes marked ≈ are estimates. EST = supplier price couldn't be confirmed.</p>
+    <p class="note">Cost is what we pay, in the supplier's currency; USD is converted at the rate above. Client price defaults to cost × markup unless an item has its own price set. Volumes marked ≈ are estimates; enter the shipping box size and weight to make them exact for packing and pallets. EST = supplier price couldn't be confirmed.</p>
   </main>
 
   <dialog id="idlg">
@@ -188,8 +188,15 @@
           <label class="f">Currency<select name="currency"><option>CAD</option><option>USD</option></select></label>
           <label class="f">Client price, CAD<input name="sell_cad" type="number" step="0.01" min="0" placeholder="cost × markup"></label>
         </div>
+        <p class="msec" style="margin:4px 0 -4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)">Shipping box &amp; weight (for packing and pallets)</p>
+        <div class="g3" style="grid-template-columns:repeat(4,1fr)">
+          <label class="f">Length (cm)<input name="length_cm" type="number" step="0.1" min="0"></label>
+          <label class="f">Width (cm)<input name="width_cm" type="number" step="0.1" min="0"></label>
+          <label class="f">Height (cm)<input name="height_cm" type="number" step="0.1" min="0"></label>
+          <label class="f">Weight (kg)<input name="weight_kg" type="number" step="0.01" min="0"></label>
+        </div>
         <div class="g3">
-          <label class="f">Packed volume (L)<input name="volume_l" type="number" step="0.01" min="0"></label>
+          <label class="f">Volume (L) — fills from the box size<input name="volume_l" type="number" step="0.01" min="0"></label>
           <label class="f">Holds (L) — cases/bags<input name="capacity_l" type="number" step="0.01" min="0"></label>
           <div class="f">&nbsp;<label class="chk"><input type="checkbox" name="volume_est"> Volume is an estimate</label><label class="chk"><input type="checkbox" name="price_est"> Price is an estimate</label></div>
         </div>
@@ -222,7 +229,7 @@
     document.getElementById('signout').addEventListener('click', e => { e.preventDefault(); RS.auth.signOut(); });
     if (await RS.ensureSeed()) toast('Starter catalog loaded');
 
-    let S, cats, gear, closed = {};
+    let S, cats, gear, closed = {}, HAS_SHIP = true;
     try { closed = JSON.parse(localStorage.getItem('rs-gear-closed') || '{}'); } catch (e) {}
     const $ = s => document.querySelector(s);
 
@@ -230,6 +237,7 @@
       [S, cats, gear] = await Promise.all([RS.settings(), store.list('categories'), store.list('gear')]);
       cats.sort((a, b) => a.sort - b.sort);
       gear.sort((a, b) => a.sort - b.sort);
+      HAS_SHIP = !RS.live || !gear.length || ('weight_kg' in gear[0]);
       $('#rate').value = S.rate; $('#markup').value = S.markup;
     }
 
@@ -259,7 +267,8 @@
       }));
       const active = gear.filter(g => !g.archived);
       $('#total').textContent = money.cad(active.reduce((s, g) => s + money.costCAD(g, S), 0));
-      $('#count').textContent = `${active.length} items · ${cats.length} capabilities · cost, CAD`;
+      const noW = active.filter(g => !(Number(g.weight_kg) > 0)).length;
+      $('#count').textContent = `${active.length} items · ${cats.length} capabilities · cost, CAD${noW ? ` · ${noW} missing weight` : ''}`;
     }
 
     function row(g) {
@@ -269,7 +278,7 @@
         <td class="hdl" title="Drag to reorder or move" aria-hidden="true">⋮⋮</td>
         <td class="thumb">${g.thumb ? `<img src="${esc(g.thumb)}" alt="" width="56" height="56" loading="lazy">` : '<span class="nothumb"></span>'}</td>
         <td class="what"><span class="nm">${esc(g.name)}</span>${g.archived ? '<span class="tag">ARCHIVED</span>' : ''}<span class="desc">${esc(g.description || '')}</span>${g.url ? `<span class="src"><a href="${esc(g.url)}" target="_blank" rel="noopener">${esc(g.source || 'link')}</a></span>` : `<span class="src">${esc(g.source || '')}</span>`}</td>
-        <td class="vol">${Number(g.volume_l) > 0 ? (g.volume_est ? '≈' : '') + Number(g.volume_l) + ' L' : '—'}${g.capacity_l ? `<small>holds ${Number(g.capacity_l)} L</small>` : ''}</td>
+        <td class="vol">${Number(g.volume_l) > 0 ? (g.volume_est ? '≈' : '') + Number(g.volume_l) + ' L' : '— L'}<small>${Number(g.weight_kg) > 0 ? Number(g.weight_kg) + ' kg' : 'no weight'}</small>${g.capacity_l ? `<small>holds ${Number(g.capacity_l)} L</small>` : ''}</td>
         <td class="price">${money.cad(money.costCAD(g, S))}${g.price_est ? '<span class="tag">EST</span>' : ''}${g.currency === 'USD' ? `<span class="orig">${money.cad(g.price)} USD</span>` : '<span class="orig">CAD</span>'}<span class="sell">client ${money.cad(sell)}${g.sell_cad != null && g.sell_cad !== '' ? ' (set)' : ''}</span></td>
         <td class="act"><select data-move aria-label="Move to capability">${g.category_id && cats.some(c => c.id === g.category_id) ? '' : '<option value="" selected>Unsorted</option>'}${opts}</select>
           <div class="lks"><button type="button" data-edit>Edit</button><button type="button" data-arch>${g.archived ? 'Restore' : 'Archive'}</button></div></td></tr>`;
@@ -334,7 +343,7 @@
       $('#idel').hidden = !g;
       iform.elements.category_id.innerHTML = cats.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
       const v = g || { category_id: cid || (cats[0] && cats[0].id), currency: 'CAD' };
-      for (const k of ['name', 'description', 'source', 'url', 'price', 'currency', 'sell_cad', 'volume_l', 'capacity_l', 'thumb']) if (iform.elements[k]) iform.elements[k].value = v[k] != null ? v[k] : '';
+      for (const k of ['name', 'description', 'source', 'url', 'price', 'currency', 'sell_cad', 'volume_l', 'capacity_l', 'thumb', 'length_cm', 'width_cm', 'height_cm', 'weight_kg']) if (iform.elements[k]) iform.elements[k].value = v[k] != null ? v[k] : '';
       iform.elements.category_id.value = v.category_id || '';
       for (const k of ['volume_est', 'price_est', 'archived']) iform.elements[k].checked = !!v[k];
       $('#afmsg').textContent = ''; $('#afmsg').className = 'afmsg';
@@ -342,6 +351,13 @@
     }
     function preview() { const u = iform.elements.thumb.value.trim(), im = $('#iprev'); im.hidden = !u; if (u) im.src = u; }
     iform.elements.thumb.addEventListener('input', preview);
+    // box size -> volume
+    function boxVolume() {
+      const n = k => parseFloat(iform.elements[k].value);
+      const L = n('length_cm'), W = n('width_cm'), H = n('height_cm');
+      if (L > 0 && W > 0 && H > 0) { iform.elements.volume_l.value = (L * W * H / 1000).toFixed(2); iform.elements.volume_est.checked = false; }
+    }
+    ['length_cm', 'width_cm', 'height_cm'].forEach(k => iform.elements[k].addEventListener('input', boxVolume));
     $('#additem').addEventListener('click', () => openItem(null));
     $('#addlink').addEventListener('click', () => openItem(null));
 
@@ -359,7 +375,8 @@
         const set = (k, v) => { if (v != null && v !== '' && iform.elements[k]) iform.elements[k].value = v; };
         set('name', d.name); set('description', d.description); set('source', d.source);
         set('price', d.price); set('currency', d.currency === 'USD' ? 'USD' : 'CAD');
-        set('volume_l', d.volume_l); set('capacity_l', d.capacity_l); set('thumb', d.image);
+        set('length_cm', d.length_cm); set('width_cm', d.width_cm); set('height_cm', d.height_cm); set('weight_kg', d.weight_kg);
+        set('volume_l', d.volume_l); set('capacity_l', d.capacity_l); set('thumb', d.image); boxVolume();
         iform.elements.price_est.checked = !!d.price_est || d.price == null; iform.elements.volume_est.checked = true;
         if (d.category) {
           const hit = cats.find(c => c.name.toLowerCase() === String(d.category).toLowerCase());
@@ -384,6 +401,7 @@
         volume_l: num('volume_l'), capacity_l: num('capacity_l'), thumb: iform.elements.thumb.value.trim() || null,
         volume_est: iform.elements.volume_est.checked, price_est: iform.elements.price_est.checked, archived: iform.elements.archived.checked,
       };
+      if (HAS_SHIP) Object.assign(data, { length_cm: num('length_cm'), width_cm: num('width_cm'), height_cm: num('height_cm'), weight_kg: num('weight_kg') });
       if (!data.name) return;
       if (data.category_id && data.category_id.startsWith('new:')) { // AI suggested a new capability
         const c = await store.insert('categories', { name: data.category_id.slice(4), sort: cats.length }); cats.push(c); data.category_id = c.id;

@@ -55,7 +55,9 @@ From the product page below, return ONLY a JSON object with these keys:
 - "price_est": true if you are unsure of the price
 - "category": the best-fitting existing category name exactly as written; if none fit, a short new category name
 - "category_is_new": true if category is not in the existing list
-- "volume_l": estimated packed volume in litres (number, 2 decimals max) from dimensions if given, else your best estimate
+- "length_cm", "width_cm", "height_cm": the product or shipping-box dimensions in centimetres if the page gives them (convert from inches), else null
+- "weight_kg": weight in kilograms if the page gives it (convert from lb/oz/g), else null
+- "volume_l": volume in litres; if all three dimensions are known use L×W×H/1000, otherwise your best estimate
 - "capacity_l": internal capacity in litres if it is a case/bag/container, else null
 - "image": absolute URL of the main product image (prefer og:image), or null
 

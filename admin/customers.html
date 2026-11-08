@@ -115,6 +115,7 @@
     .msec { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin: 6px 0 -4px; }
     .pi { display: grid; grid-template-columns: minmax(0,1fr) auto auto auto auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--rule-soft); }
     .pi .nm { font-size: 14px; line-height: 1.3; }
+    .pi .nm .sub { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
     .qty { display: inline-flex; border: 1px solid var(--rule-soft); }
     .qty button { width: 22px; background: none; border: 0; cursor: pointer; color: var(--ink-3); font-family: var(--mono); }
     .qty button:hover { color: var(--ink); }
@@ -333,25 +334,29 @@
     /* ---------- totals ---------- */
     function totals(c) {
       const lines = cg.filter(x => x.customer_id === c.id);
-      let cost = 0, sell = 0, vol = 0, cap = 0, units = 0, est = false;
+      let cost = 0, sell = 0, vol = 0, ship = 0, cap = 0, units = 0, est = false, kg = 0, noW = 0;
       for (const l of lines) {
         const g = gearById(l.gear_id); if (!g) continue;
         units += l.qty;
         cost += money.costCAD(g, S) * l.qty;
         sell += money.sellCAD(g, S, l.sell_cad) * l.qty;
         if (g.capacity_l) cap += Number(g.capacity_l) * l.qty;
-        if (g.volume_l) vol += Number(g.volume_l) * l.qty;
+        if (g.volume_l) { ship += Number(g.volume_l) * l.qty; if (!g.capacity_l) vol += Number(g.volume_l) * l.qty; } // cases hold gear; they don't take space inside themselves
+        if (Number(g.weight_kg) > 0) kg += Number(g.weight_kg) * l.qty; else noW += 1;
         if (g.volume_est || g.price_est) est = true;
       }
-      return { lines: lines.length, units, cost, sell, vol, cap, est };
+      return { lines: lines.length, units, cost, sell, vol, ship, cap, est, kg, noW };
     }
+    // Standard 48×40 in pallet stacked to ~152 cm ≈ 1,890 L, ~1,000 kg working load
+    const PALLET_L = 1890, PALLET_KG = 1000;
+    function pallets(t) { const p = Math.max(t.ship / PALLET_L, t.kg / PALLET_KG); return p ? `≈${p < 0.1 ? p.toFixed(2) : p.toFixed(1)} pallet` : '0 pallet'; }
     function renderTotals(c) {
       const el = document.getElementById('adm-slot'); if (!el) return;
       if (!c) { el.innerHTML = ''; return; }
       const t = totals(c), m = t.sell - t.cost, pct = t.sell ? (m / t.sell) * 100 : 0;
-      const vol = t.cap ? `<span class="${t.vol > t.cap ? 'over' : ''}">${t.est ? '≈' : ''}${t.vol.toFixed(1)} / ${t.cap.toFixed(1)} L</span>` : `${t.est ? '≈' : ''}${t.vol.toFixed(1)} L`;
+      const vol = (t.cap ? `<span class="${t.vol > t.cap ? 'over' : ''}">${t.est ? '≈' : ''}${t.vol.toFixed(1)} / ${t.cap.toFixed(1)} L in case</span>` : `${t.est ? '≈' : ''}${t.vol.toFixed(1)} L`) + ` · ${t.ship.toFixed(1)} L to ship`;
       el.innerHTML = `<span class="lbl">Package</span><span class="amt">${money.cad(t.sell)}</span>
-        <span class="cnt">${t.units} item${t.units === 1 ? '' : 's'} · ${vol} · cost ${money.cad(t.cost)} · margin ${money.cad(m)} (${pct.toFixed(0)}%) · ${money.cad(t.sell / S.rate)} USD</span>`;
+        <span class="cnt">${t.units} item${t.units === 1 ? '' : 's'} · ${vol} · ${t.kg.toFixed(1)} kg${t.noW ? ` (${t.noW} without weight)` : ''} · ${pallets(t)} · cost ${money.cad(t.cost)} · margin ${money.cad(m)} (${pct.toFixed(0)}%) · ${money.cad(t.sell / S.rate)} USD</span>`;
     }
 
     function refLine(c) {
@@ -480,13 +485,13 @@
           return `<li class="gi ${on ? 'on' : ''}" data-gid="${g.id}" role="button" tabindex="0" aria-pressed="${on}">
             <span class="box" aria-hidden="true"></span>
             ${g.thumb ? `<img class="th" src="${esc(g.thumb)}" alt="" loading="lazy">` : '<span class="th none"></span>'}
-            <span><span class="nm">${esc(g.name)}</span><br><span class="sub">${esc(g.source || '')}${g.volume_l ? ` · ${g.volume_est ? '≈' : ''}${g.volume_l} L` : ''}${g.capacity_l ? ` · holds ${g.capacity_l} L` : ''}</span></span>
+            <span><span class="nm">${esc(g.name)}</span><br><span class="sub">${esc(g.source || '')}${g.volume_l ? ` · ${g.volume_est ? '≈' : ''}${Number(g.volume_l)} L` : ''}${Number(g.weight_kg) > 0 ? ` · ${Number(g.weight_kg)} kg` : ''}${g.capacity_l ? ` · holds ${Number(g.capacity_l)} L` : ''}</span></span>
             <span class="pr">${money.cad(money.sellCAD(g, S))}</span></li>`;
         }).join('') : `<li class="pk-none">${all.length ? 'No match.' : 'No gear in this capability yet. Add some in Master gear.'}</li>`;
         const right = mine.length ? mine.map(l => {
           const g = gearById(l.gear_id), unit = money.sellCAD(g, S, l.sell_cad);
           return `<li class="pi" data-lid="${l.id}">
-            <span class="nm">${esc(g.name)}${g.archived ? ' <span class="sub">(archived)</span>' : ''}</span>
+            <span class="nm">${esc(g.name)}${g.archived ? ' <span class="sub">(archived)</span>' : ''}<br><span class="sub">${g.volume_l ? (Number(g.volume_l) * l.qty).toFixed(1) + ' L' : '— L'} · ${Number(g.weight_kg) > 0 ? (Number(g.weight_kg) * l.qty).toFixed(1) + ' kg' : 'no weight'}</span></span>
             <span class="qty"><button type="button" data-q="-1" aria-label="Fewer">−</button><input type="number" min="1" max="99" value="${l.qty}" aria-label="Quantity"><button type="button" data-q="1" aria-label="More">+</button></span>
             <input class="unit ${l.sell_cad != null ? 'custom' : ''}" type="number" step="0.01" min="0" placeholder="${money.sellCAD(g, S).toFixed(2)}" value="${l.sell_cad != null ? l.sell_cad : ''}" aria-label="Unit price for this client (CAD)" title="Client unit price, CAD">
             <span class="line">${money.cad(unit * l.qty)}</span>
