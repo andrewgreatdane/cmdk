@@ -67,7 +67,7 @@
       const total = lines.reduce((t, l) => { const g = gear.find(x => x.id === l.gear_id); return g ? t + money.sellCAD(g, S, l.sell_cad) * l.qty : t; }, 0);
       const n = members.filter(m => m.customer_id === c.id).length;
       return `<div class="pop"><div class="nm">${esc(c.name)}</div>
-        <div class="mt">${esc(c.status || 'Intake')} · ${esc(c.address || c.location || '')}</div>
+        <div class="mt">${esc(RS.stageOf(c))} · ${esc(c.address || c.location || '')}</div>
         <div>${n ? n + ' in household · ' : ''}<span class="num">${lines.length} items · ${money.cad(total)}</span></div>
         ${c.phone ? `<div>${esc(c.phone)}</div>` : ''}
         <a class="btn" href="customers.html?id=${c.id}">Open customer</a></div>`;

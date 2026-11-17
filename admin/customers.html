@@ -146,7 +146,49 @@
     .addm:hover { background: #000; color: #fff; }
     .tl-empty { padding: 16px 0; color: var(--ink-3); font-size: 13px; }
 
+    /* pipeline */
+    .pipe { list-style: none; margin: 0 0 24px; padding: 0; display: flex; border: 1px solid var(--rule); overflow-x: auto; }
+    .pipe li { flex: 1 0 auto; border-right: 1px solid var(--rule-soft); }
+    .pipe li:last-child { border-right: 0; }
+    .pipe button { width: 100%; background: none; border: 0; padding: 8px 10px; cursor: pointer; text-align: left; display: grid; gap: 1px; color: var(--ink-3); }
+    .pipe button:hover { background: var(--hover); color: var(--ink); }
+    .pipe .st { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+    .pipe .dt { font-family: var(--mono); font-size: 11px; min-height: 1.3em; white-space: nowrap; }
+    .pipe .past button { color: var(--ink); background: var(--sel); }
+    .pipe .now button { background: #000; color: #fff; }
+    /* assessment notes */
+    .an { list-style: none; margin: 0; padding: 0; }
+    .an li { display: grid; grid-template-columns: 130px 1fr auto; gap: 4px 12px; padding: 10px 0; border-bottom: 1px solid var(--rule-soft); font-size: 14px; align-items: baseline; }
+    .an .ar { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+    .an .nd { font-weight: 500; }
+    .an .why { color: var(--ink-2); font-size: 13px; }
+    .an .empty { display: block; color: var(--ink-3); font-size: 13px; }
+    .anform { display: grid; grid-template-columns: 130px 1fr 1fr auto; gap: 8px; padding-top: 10px; align-items: end; }
+    .sect { margin-bottom: 48px; }
+    /* packing list */
+    .bl { list-style: none; margin: 0; padding: 0; }
+    .bl li { display: grid; grid-template-columns: minmax(0, 1fr) 120px repeat(4, 62px); gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--rule-soft); font-size: 14px; }
+    .bl li.hd { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); padding: 8px 0 4px; }
+    .bl li.hd span, .bl .ck { text-align: center; }
+    .bl li.hd span:first-child { text-align: left; }
+    .bl li.ok .nm { color: var(--ink-3); }
+    .bl .nm .sub { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+    .bl select { font-size: 12px; padding: 2px 4px; border: 1px solid var(--rule-soft); background: #fff; width: 100%; border-radius: 0; }
+    .bl input[type=checkbox], .tm input[type=checkbox] { accent-color: #000; width: 16px; height: 16px; }
+    .bl .empty { display: block; color: var(--ink-3); font-size: 13px; }
+    .signoff { padding: 14px 0 0; font-size: 13px; display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+    .signoff .done { font-weight: 600; }
+    /* training completion */
+    .tm { border-collapse: collapse; width: 100%; font-size: 14px; }
+    .tm th, .tm td { border-bottom: 1px solid var(--rule-soft); padding: 8px 6px; text-align: center; }
+    .tm th { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+    .tm th:first-child, .tm td:first-child { text-align: left; padding-left: 0; }
+    .tmwrap { overflow-x: auto; }
+
     @media (max-width: 900px) {
+      .anform { grid-template-columns: 1fr; }
+      .bl li { grid-template-columns: minmax(0, 1fr) repeat(4, 44px); }
+      .bl li > :nth-child(2) { display: none; }
       .wrap { grid-template-columns: 1fr; }
       .clients { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--rule-soft); max-height: 280px; padding-top: 16px; }
       .cols { grid-template-columns: 1fr; }
@@ -190,8 +232,8 @@
           <label class="field"><span class="lbl">Location</span><input name="location"></label>
         </div>
         <div class="grid2">
-          <label class="field"><span class="lbl">Status</span>
-            <select name="status"><option>Intake</option><option>Assessment</option><option>Design</option><option>Proposal</option><option>Active</option><option>Delivered</option><option>Paused</option></select>
+          <label class="field"><span class="lbl">Stage</span>
+            <select name="stage"><option>Lead</option><option>Call</option><option>Assessment</option><option>Spec sent</option><option>Accepted</option><option>Building</option><option>Delivered</option><option>Trained</option><option>Member</option></select>
           </label>
           <label class="field"><span class="lbl">Referred by</span><select name="referred_by"><option value="">No one</option></select></label>
         </div>
@@ -279,7 +321,12 @@
     }
     if (await RS.ensureSeed()) toast('Starter catalog loaded');
 
-    let S, cats, gear, customers, cg, cm, modules, members, tasks;
+    let S, cats, gear, customers, cg, cm, modules, members, tasks, notes, comps;
+    const { STAGES, STAGE_DATE, stageOf } = RS;
+    const me = user.name || user.email || 'Admin';
+    const todayStr = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+    const plusYear = d => { const x = new Date(d + 'T12:00:00'); x.setFullYear(x.getFullYear() + 1); return x.toISOString().slice(0, 10); };
+    const day = ts => RS.fmtDate(String(ts).slice(0, 10));
     let tab = (() => { try { return localStorage.getItem('rs-ctab') || 'gear'; } catch (e) { return 'gear'; } })();
     const params = new URLSearchParams(location.search);
     let currentId = params.get('id');
@@ -287,10 +334,11 @@
     let catQuery = '';
 
     async function load() {
-      [S, cats, gear, customers, cg, cm, modules, members, tasks] = await Promise.all([
+      [S, cats, gear, customers, cg, cm, modules, members, tasks, notes, comps] = await Promise.all([
         RS.settings(), store.list('categories'), store.list('gear'), store.list('customers'),
         store.list('customer_gear'), store.list('customer_modules'), store.list('modules'),
-        store.list('members').catch(() => []), store.list('tasks').catch(() => [])]);
+        store.list('members').catch(() => []), store.list('tasks').catch(() => []),
+        store.list('assessment_notes').catch(() => []), store.list('customer_module_completions').catch(() => [])]);
       cats.sort((a, b) => a.sort - b.sort);
       gear.sort((a, b) => a.sort - b.sort);
       modules.sort((a, b) => a.sort - b.sort);
@@ -300,19 +348,19 @@
     const catName = id => (cats.find(c => c.id === id) || {}).name || 'Unsorted';
 
     /* ---------- referrals: one free membership year per referred customer who signs on ---------- */
-    const SIGNED = ['Active', 'Delivered'];
+    const isSigned = x => STAGES.indexOf(stageOf(x)) >= STAGES.indexOf('Accepted');
     function referrals(c) {
       const all = customers.filter(x => x.referred_by === c.id);
-      const earned = all.filter(x => SIGNED.includes(x.status));
-      return { all, earned, pending: all.filter(x => !SIGNED.includes(x.status)) };
+      const earned = all.filter(isSigned);
+      return { all, earned, pending: all.filter(x => !isSigned(x)) };
     }
     /* ---------- client list ---------- */
     function renderList() {
       const q = document.getElementById('csearch').value.trim().toLowerCase();
-      const rows = customers.filter(c => !q || [c.name, c.email, c.location, c.status].join(' ').toLowerCase().includes(q));
+      const rows = customers.filter(c => !q || [c.name, c.email, c.location, stageOf(c)].join(' ').toLowerCase().includes(q));
             document.getElementById('clist').innerHTML = rows.length ? rows.map(c => {
         const n = cg.filter(x => x.customer_id === c.id).reduce((s, x) => s + x.qty, 0);
-        return `<li><button type="button" data-id="${c.id}" ${c.id === currentId ? 'aria-current="true"' : ''}><span class="nm">${esc(c.name)}</span><span class="mt">${esc(c.status || 'Intake')} · ${n} item${n === 1 ? '' : 's'}${c.intake_submitted_at ? ' · intake in' : ''}${referrals(c).earned.length ? ` · ${referrals(c).earned.length} free yr${referrals(c).earned.length === 1 ? '' : 's'}` : ''}</span></button></li>`;
+        return `<li><button type="button" data-id="${c.id}" ${c.id === currentId ? 'aria-current="true"' : ''}><span class="nm">${esc(c.name)}</span><span class="mt">${esc(stageOf(c))} · ${n} item${n === 1 ? '' : 's'}${c.intake_submitted_at ? ' · intake in' : ''}${referrals(c).earned.length ? ` · ${referrals(c).earned.length} free yr${referrals(c).earned.length === 1 ? '' : 's'}` : ''}</span></button></li>`;
       }).join('') : `<li class="empty">${customers.length ? 'No match.' : 'No customers yet.'}</li>`;
     }
     document.getElementById('csearch').addEventListener('input', renderList);
@@ -364,7 +412,7 @@
       const link = x => `<a href="?id=${x.id}" data-goto="${x.id}">${esc(x.name)}</a>`;
       const parts = [];
       if (by) parts.push(`Referred by ${link(by)}`);
-      if (r.all.length) parts.push(`<b>${r.earned.length} free membership year${r.earned.length === 1 ? '' : 's'} earned</b> — referred ${r.all.map(x => link(x) + (SIGNED.includes(x.status) ? '' : ' <span class="muted">(pending)</span>')).join(', ')}`);
+      if (r.all.length) parts.push(`<b>${r.earned.length} free membership year${r.earned.length === 1 ? '' : 's'} earned</b> — referred ${r.all.map(x => link(x) + (isSigned(x) ? '' : ' <span class="muted">(pending)</span>')).join(', ')}`);
       return parts.length ? `<p class="c-notes ref">${parts.join(' · ')}</p>` : '';
     }
     document.addEventListener('click', e => { const a = e.target.closest('a[data-goto]'); if (!a) return; e.preventDefault(); select(a.dataset.goto); });
@@ -380,15 +428,16 @@
         <div class="c-head">
           <div>
             <h1>${esc(c.name)}</h1>
-            <div class="c-meta"><span>${esc(c.status || 'Intake')}</span><span>${esc(c.location || '')}</span><span>${esc(c.email || '')}</span><span>${esc(c.phone || '')}</span></div>
+            <div class="c-meta"><span>${esc(stageOf(c))}</span><span>${esc(c.location || '')}</span><span>${esc(c.email || '')}</span><span>${esc(c.phone || '')}</span></div>
             ${refLine(c)}
             ${c.intake_submitted_at ? `<p class="c-notes">Intake received ${RS.fmtDate(c.intake_submitted_at.slice(0, 10))}</p>` : ''}
             ${nextTask ? `<p class="c-notes">Next: ${esc(nextTask.kind)}${nextTask.title ? ' — ' + esc(nextTask.title) : ''} · ${RS.fmtDate(nextTask.due_date)}</p>` : ''}
           </div>
           <div class="c-actions"><button class="btn" type="button" id="intake-link" title="Copy a private link the client can use to fill in their own details">Copy intake link</button><button class="btn" type="button" id="edit-c">Edit details</button></div>
         </div>
+        ${pipeHTML(c)}
         <nav class="tabs" role="tablist">
-          ${[['onboarding', `Onboarding${nMem ? ' (' + nMem + ')' : ''}`], ['gear', 'Gear'], ['training', 'Training'], ['schedule', 'Schedule']].map(([k, l]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${tab === k}">${l}</button>`).join('')}
+          ${[['onboarding', `Onboarding${nMem ? ' (' + nMem + ')' : ''}`], ['gear', 'Gear'], ['build', 'Build'], ['training', 'Training'], ['schedule', 'Schedule']].map(([k, l]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${tab === k}">${l}</button>`).join('')}
         </nav>
 
         <section data-pane="onboarding" ${tab === 'onboarding' ? '' : 'hidden'}>
@@ -406,6 +455,16 @@
               </dl>
             </div>
           </div>
+          <div class="sect">
+            <h2 class="h2"><span>Assessment: what they need and why</span><span class="sub" id="an-count"></span></h2>
+            <ul class="an" id="anotes"></ul>
+            <form id="anform" class="anform">
+              <label class="field"><span class="lbl">Area</span><input name="area" placeholder="e.g. Water"></label>
+              <label class="field"><span class="lbl">What they need</span><input name="need" required placeholder="e.g. 14 days of stored water for 4"></label>
+              <label class="field"><span class="lbl">Why</span><input name="reason" placeholder="e.g. on a well, pump fails without power"></label>
+              <button class="btn btn-solid" type="submit">Add</button>
+            </form>
+          </div>
         </section>
 
         <section data-pane="gear" ${tab === 'gear' ? '' : 'hidden'}>
@@ -417,10 +476,42 @@
           <p class="hint">Price box = client price per unit. Leave blank to use the catalog price.</p>
         </section>
 
+        <section data-pane="build" ${tab === 'build' ? '' : 'hidden'}>
+          <div class="cols">
+            <div>
+              <h2 class="h2"><span>Packing list</span><span class="sub" id="bl-count"></span></h2>
+              <ul class="bl" id="blist"></ul>
+              <div class="signoff" id="signoff"></div>
+              <p class="hint">The list is the Gear tab's package. Changing the package or unticking a line clears the sign-off.</p>
+            </div>
+            <div>
+              <h2 class="h2"><span>Payment &amp; delivery</span></h2>
+              <form id="msform" class="taskform">
+                <div class="grid2">
+                  <label class="field"><span class="lbl">Spec accepted</span><input name="spec_accepted_on" type="date" value="${esc(c.spec_accepted_on || '')}"></label>
+                  <label class="field"><span class="lbl">50% deposit received</span><input name="deposit_paid_on" type="date" value="${esc(c.deposit_paid_on || '')}"></label>
+                </div>
+                <div class="grid2">
+                  <label class="field"><span class="lbl">Delivered</span><input name="delivered_on" type="date" value="${esc(c.delivered_on || '')}"></label>
+                  <label class="field"><span class="lbl">Acceptance signed by</span><input name="accepted_by" value="${esc(c.accepted_by || '')}" placeholder="Adult client who signed"></label>
+                </div>
+                <div class="grid2">
+                  <label class="field"><span class="lbl">Final 50% received</span><input name="final_paid_on" type="date" value="${esc(c.final_paid_on || '')}"></label>
+                  <label class="field"><span class="lbl">Membership renewal due</span><input value="${c.delivered_on ? RS.fmtDate(plusYear(c.delivered_on)) : 'Set by delivery date'}" disabled></label>
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+
         <section data-pane="training" ${tab === 'training' ? '' : 'hidden'}>
           <div class="cols">
             <div><h2 class="h2"><span>Training path</span><span class="sub" id="tl-count"></span></h2><ol class="tl" id="tpath"></ol><p class="hint">Drag ⋮⋮ to set the order.</p></div>
             <div class="lib"><h2 class="h2"><span>Module library</span><a class="sub" href="training.html">manage</a></h2><ul class="tl" id="tlib"></ul></div>
+          </div>
+          <div class="sect">
+            <h2 class="h2"><span>Completion by person</span><span class="sub" id="tm-count"></span></h2>
+            <div class="tmwrap" id="tmatrix"></div>
           </div>
         </section>
 
@@ -459,8 +550,133 @@
       document.getElementById('edit-c').addEventListener('click', () => openCustomer(c));
       const gs = document.getElementById('gsearch');
       gs.addEventListener('input', () => { catQuery = gs.value; renderCatalog(c); });
-      renderTotals(c); renderCatalog(c); renderPackage(c); renderTraining(c); renderMembers(c); renderTasks(c);
+      document.querySelectorAll('.pipe [data-stage]').forEach(b => b.addEventListener('click', () => setStage(c, b.dataset.stage)));
+      document.getElementById('anform').addEventListener('submit', async e => {
+        e.preventDefault(); const f = e.target.elements; const need = f.need.value.trim(); if (!need) return;
+        notes.push(await store.insert('assessment_notes', { customer_id: c.id, area: f.area.value.trim() || null, need, reason: f.reason.value.trim() || null, sort: notes.filter(n => n.customer_id === c.id).length, created_by: me }));
+        renderWork(); const a = document.querySelector('#anform [name=area]'); if (a) a.focus();
+      });
+      document.getElementById('msform').addEventListener('change', async e => {
+        const k = e.target.name; if (!k) return;
+        const v = e.target.value.trim() || null;
+        Object.assign(c, await store.update('customers', c.id, { [k]: v }));
+        if (k === 'delivered_on' && v) await ensureRenewal(c);
+        toast('Saved'); renderWork();
+      });
+      document.getElementById('msform').addEventListener('submit', e => e.preventDefault());
+      renderTotals(c); renderCatalog(c); renderPackage(c); renderTraining(c); renderMembers(c); renderTasks(c); renderNotes(c); renderBuild(c); renderMatrix(c);
     }
+
+    /* ---------- pipeline ---------- */
+    function pipeHTML(c) {
+      const at = STAGES.indexOf(stageOf(c));
+      return `<ol class="pipe" aria-label="Client stage">${STAGES.map((s, i) => {
+        const k = STAGE_DATE[s];
+        return `<li class="${i < at ? 'past' : i === at ? 'now' : ''}"><button type="button" data-stage="${s}" ${i === at ? 'aria-current="step"' : ''} title="Move to ${s}"><span class="st">${s}</span><span class="dt">${k && c[k] ? RS.fmtDate(c[k]) : ''}</span></button></li>`;
+      }).join('')}</ol>`;
+    }
+    // First open annual check for this client, booked a year after delivery (renewal + refresh).
+    async function ensureRenewal(c) {
+      if (!c.delivered_on || tasks.some(t => t.customer_id === c.id && t.kind === 'Annual check' && !t.done_at)) return;
+      tasks.push(await store.insert('tasks', { customer_id: c.id, kind: 'Annual check', title: 'Membership renewal and refresh', due_date: plusYear(c.delivered_on), assignee: null, done_at: null }));
+      toast('Renewal booked for ' + RS.fmtDate(plusYear(c.delivered_on)));
+    }
+    async function setStage(c, s) {
+      if (s === stageOf(c)) return;
+      if (s === 'Delivered' && !c.build_signed_off_at && !confirm('The packing list has not been signed off. Mark as delivered anyway?')) return;
+      const patch = { stage: s }, k = STAGE_DATE[s];
+      if (k && !c[k]) patch[k] = todayStr();
+      Object.assign(c, await store.update('customers', c.id, patch));
+      if (s === 'Delivered') await ensureRenewal(c);
+      renderList(); renderWork();
+    }
+
+    /* ---------- assessment notes ---------- */
+    function renderNotes(c) {
+      const host = document.getElementById('anotes'); if (!host) return;
+      const list = notes.filter(n => n.customer_id === c.id).sort((a, b) => (a.sort || 0) - (b.sort || 0));
+      document.getElementById('an-count').textContent = list.length ? `${list.length} need${list.length === 1 ? '' : 's'}` : '';
+      host.innerHTML = list.length ? list.map(n => `<li data-nid="${n.id}"><span class="ar">${esc(n.area || 'General')}</span><span><span class="nd">${esc(n.need)}</span>${n.reason ? `<div class="why">${esc(n.reason)}</div>` : ''}</span><button type="button" class="x" data-delnote aria-label="Delete note">×</button></li>`).join('')
+        : '<li class="empty">Nothing logged yet. Record what this household needs, and the reason, during the walkthrough.</li>';
+    }
+    document.addEventListener('click', async e => {
+      const b = e.target.closest('[data-delnote]'); if (!b) return;
+      const id = b.closest('li').dataset.nid; await store.remove('assessment_notes', id); notes = notes.filter(n => n.id !== id);
+      const c = customers.find(x => x.id === currentId); if (c) renderNotes(c);
+    });
+
+    /* ---------- build: packing list and sign-off ---------- */
+    const BSTEPS = [['ordered_at', 'Ordered'], ['received_at', 'Received'], ['packed_at', 'Packed'], ['checked_at', 'Checked']];
+    function buildLines(c) {
+      return cg.filter(x => x.customer_id === c.id && gearById(x.gear_id)).sort((x, y) => {
+        const a = gearById(x.gear_id), b = gearById(y.gear_id);
+        const ca = cats.findIndex(k => k.id === a.category_id), cb = cats.findIndex(k => k.id === b.category_id);
+        return (ca - cb) || (a.sort - b.sort);
+      });
+    }
+    function renderBuild(c) {
+      const host = document.getElementById('blist'); if (!host) return;
+      const lines = buildLines(c), mem = members.filter(m => m.customer_id === c.id);
+      const ready = lines.filter(l => l.packed_at && l.checked_at).length;
+      document.getElementById('bl-count').textContent = lines.length ? `${ready} of ${lines.length} packed and checked` : '';
+      host.innerHTML = lines.length ? `<li class="hd"><span>Item</span><span>For</span>${BSTEPS.map(([, l]) => `<span>${l}</span>`).join('')}</li>` + lines.map(l => {
+        const g = gearById(l.gear_id);
+        return `<li data-bid="${l.id}" class="${l.packed_at && l.checked_at ? 'ok' : ''}">
+          <span class="nm">${l.qty} × ${esc(g.name)}<br><span class="sub">${esc(catName(g.category_id))}${l.checked_by ? ' · checked by ' + esc(l.checked_by) : ''}</span></span>
+          <select data-for aria-label="Who this item is for"><option value="">Household</option>${mem.map(m => `<option value="${m.id}" ${l.member_id === m.id ? 'selected' : ''}>${esc(m.name)}</option>`).join('')}</select>
+          ${BSTEPS.map(([k, lab]) => `<span class="ck"><input type="checkbox" data-step="${k}" ${l[k] ? 'checked' : ''} aria-label="${lab}" title="${l[k] ? lab + ' ' + day(l[k]) : lab}"></span>`).join('')}</li>`;
+      }).join('') : '<li class="empty">No gear in the package yet. Build it on the Gear tab.</li>';
+      const so = document.getElementById('signoff');
+      if (c.build_signed_off_at) so.innerHTML = `<span class="done">Signed off by ${esc(c.build_signed_off_by || '')} · ${day(c.build_signed_off_at)}</span><button type="button" class="adm-link" id="so-undo">Undo sign-off</button>`;
+      else if (!lines.length) so.innerHTML = '';
+      else if (ready < lines.length) so.innerHTML = `<button type="button" class="btn" disabled style="opacity:.4;cursor:default">Sign off packing list</button><span class="muted">${lines.length - ready} line${lines.length - ready === 1 ? '' : 's'} still to pack and check</span>`;
+      else so.innerHTML = `<button type="button" class="btn btn-solid" id="so-go">Sign off packing list</button><span class="muted">Signing as ${esc(me)}</span>`;
+    }
+    async function clearSignoff(c) {
+      if (!c || !c.build_signed_off_at) return;
+      try { Object.assign(c, await store.update('customers', c.id, { build_signed_off_by: null, build_signed_off_at: null })); toast('Packing list changed, sign-off cleared', true); } catch (e) {}
+    }
+    document.addEventListener('change', async e => {
+      const li = e.target.closest('#blist li[data-bid]'); if (!li) return;
+      const l = cg.find(x => x.id === li.dataset.bid), c = customers.find(x => x.id === currentId); if (!l || !c) return;
+      if (e.target.matches('[data-for]')) { Object.assign(l, await store.update('customer_gear', l.id, { member_id: e.target.value || null })); return; }
+      const k = e.target.dataset.step; if (!k) return;
+      const patch = { [k]: e.target.checked ? new Date().toISOString() : null };
+      if (k === 'checked_at') patch.checked_by = e.target.checked ? me : null;
+      Object.assign(l, await store.update('customer_gear', l.id, patch));
+      if (!e.target.checked) await clearSignoff(c);
+      renderBuild(c);
+    });
+    document.addEventListener('click', async e => {
+      const go = e.target.closest('#so-go'), undo = e.target.closest('#so-undo'); if (!go && !undo) return;
+      const c = customers.find(x => x.id === currentId); if (!c) return;
+      Object.assign(c, await store.update('customers', c.id, go ? { build_signed_off_by: me, build_signed_off_at: new Date().toISOString() } : { build_signed_off_by: null, build_signed_off_at: null }));
+      toast(go ? 'Packing list signed off' : 'Sign-off removed'); renderBuild(c);
+    });
+
+    /* ---------- training completion, per person per module ---------- */
+    function renderMatrix(c) {
+      const host = document.getElementById('tmatrix'); if (!host) return;
+      const mine = cm.filter(x => x.customer_id === c.id).sort((a, b) => a.position - b.position).filter(x => modules.some(m => m.id === x.module_id));
+      const mem = members.filter(m => m.customer_id === c.id).sort((a, b) => (a.sort || 0) - (b.sort || 0));
+      const cnt = document.getElementById('tm-count');
+      if (!mine.length || !mem.length) { cnt.textContent = ''; host.innerHTML = `<p class="tl-empty">${!mine.length ? 'Add modules to the training path first.' : 'Add household members on the Onboarding tab to track who has completed each module.'}</p>`; return; }
+      const has = (x, m) => comps.find(k => k.customer_module_id === x.id && k.member_id === m.id);
+      const done = mine.reduce((s, x) => s + mem.filter(m => has(x, m)).length, 0);
+      cnt.textContent = `${done} of ${mine.length * mem.length} complete`;
+      host.innerHTML = `<table class="tm"><thead><tr><th>Module</th>${mem.map(m => `<th>${esc(m.name)}</th>`).join('')}</tr></thead><tbody>${mine.map(x => {
+        const mod = modules.find(m => m.id === x.module_id);
+        return `<tr><td>${esc(mod.title)}</td>${mem.map(m => { const k = has(x, m); return `<td><input type="checkbox" data-cmid="${x.id}" data-mem="${m.id}" ${k ? 'checked' : ''} aria-label="${esc(m.name)} completed ${esc(mod.title)}" title="${k ? 'Signed off by ' + esc(k.signed_off_by || '') + ' · ' + day(k.completed_at) : ''}"></td>`; }).join('')}</tr>`;
+      }).join('')}</tbody></table>`;
+    }
+    document.addEventListener('change', async e => {
+      const t = e.target; if (!t.matches || !t.matches('#tmatrix input[data-cmid]')) return;
+      const c = customers.find(x => x.id === currentId); if (!c) return;
+      const ex = comps.find(k => k.customer_module_id === t.dataset.cmid && k.member_id === t.dataset.mem);
+      if (t.checked && !ex) comps.push(await store.insert('customer_module_completions', { customer_module_id: t.dataset.cmid, member_id: t.dataset.mem, completed_at: new Date().toISOString(), signed_off_by: me }));
+      if (!t.checked && ex) { await store.remove('customer_module_completions', ex.id); comps = comps.filter(k => k.id !== ex.id); }
+      renderMatrix(c);
+    });
 
     function inPkg(c, gid) { return cg.find(x => x.customer_id === c.id && x.gear_id === gid); }
 
@@ -535,12 +751,13 @@
         const ex = inPkg(c, gid);
         if (ex) { await store.remove('customer_gear', ex.id); cg = cg.filter(x => x.id !== ex.id); }
         else { const r = await store.insert('customer_gear', { customer_id: c.id, gear_id: gid, qty: 1, sell_cad: null }); cg.push(r); }
+        await clearSignoff(c);
         refreshGear(c, gid);
       } finally { busy = false; }
     }
     function refreshGear(c, focusGid) {
       const y = window.scrollY;
-      renderCatalog(c); renderPackage(c); renderTotals(c); renderList();
+      renderCatalog(c); renderPackage(c); renderTotals(c); renderList(); renderBuild(c);
       window.scrollTo(0, y);
       if (focusGid) { const el = document.querySelector(`.gi[data-gid="${focusGid}"]`); if (el && document.activeElement === document.body) el.focus({ preventScroll: true }); }
     }
@@ -550,15 +767,15 @@
       const pi = e.target.closest('.pi'); if (!pi) return;
       const l = cg.find(x => x.id === pi.dataset.lid); if (!l) return;
       const c = customers.find(x => x.id === currentId);
-      if (e.target.closest('.x')) { await store.remove('customer_gear', l.id); cg = cg.filter(x => x.id !== l.id); refreshGear(c); return; }
+      if (e.target.closest('.x')) { await store.remove('customer_gear', l.id); cg = cg.filter(x => x.id !== l.id); await clearSignoff(c); refreshGear(c); return; }
       const qb = e.target.closest('[data-q]');
-      if (qb) { const q = Math.max(1, Math.min(99, l.qty + Number(qb.dataset.q))); if (q !== l.qty) { l.qty = q; await store.update('customer_gear', l.id, { qty: q }); refreshGear(c); } }
+      if (qb) { const q = Math.max(1, Math.min(99, l.qty + Number(qb.dataset.q))); if (q !== l.qty) { l.qty = q; await store.update('customer_gear', l.id, { qty: q }); await clearSignoff(c); refreshGear(c); } }
     });
     document.addEventListener('change', async e => {
       const pi = e.target.closest('.pi'); if (!pi) return;
       const l = cg.find(x => x.id === pi.dataset.lid); if (!l) return;
       const c = customers.find(x => x.id === currentId);
-      if (e.target.matches('.qty input')) { const q = Math.max(1, Math.min(99, parseInt(e.target.value) || 1)); l.qty = q; await store.update('customer_gear', l.id, { qty: q }); }
+      if (e.target.matches('.qty input')) { const q = Math.max(1, Math.min(99, parseInt(e.target.value) || 1)); l.qty = q; await store.update('customer_gear', l.id, { qty: q }); await clearSignoff(c); }
       if (e.target.matches('.unit')) { const v = e.target.value === '' ? null : Math.max(0, Number(e.target.value)); l.sell_cad = v; await store.update('customer_gear', l.id, { sell_cad: v }); }
       refreshGear(c);
     });
@@ -584,6 +801,7 @@
         onUpdate: () => saveOrder(c),
         onAdd: () => saveOrder(c),
       });
+      renderMatrix(c);
       Sortable.create(lib, { group: { name: 'train', pull: true, put: false }, sort: false, animation: 150, filter: '.tl-empty, .addm', preventOnFilter: false });
     }
     async function saveOrder(c) {
@@ -609,7 +827,7 @@
       if (rm) {
         const mid = rm.closest('[data-mid]').dataset.mid;
         const ex = cm.find(x => x.customer_id === c.id && x.module_id === mid);
-        if (ex) { await store.remove('customer_modules', ex.id); cm = cm.filter(x => x.id !== ex.id); }
+        if (ex) { await store.remove('customer_modules', ex.id); cm = cm.filter(x => x.id !== ex.id); comps = comps.filter(k => k.customer_module_id !== ex.id); }
         const rest = cm.filter(x => x.customer_id === c.id).sort((a, b) => a.position - b.position);
         for (let i = 0; i < rest.length; i++) if (rest[i].position !== i) { rest[i].position = i; await store.update('customer_modules', rest[i].id, { position: i }); }
         renderTraining(c);
@@ -654,7 +872,7 @@
     });
     document.getElementById('mdelete').addEventListener('click', async () => {
       if (!editingM || !confirm(`Remove ${editingM.name} from this household?`)) return;
-      await store.remove('members', editingM.id); members = members.filter(m => m.id !== editingM.id);
+      await store.remove('members', editingM.id); comps = comps.filter(k => k.member_id !== editingM.id); cg.forEach(l => { if (l.member_id === editingM.id) l.member_id = null; }); members = members.filter(m => m.id !== editingM.id);
       mdlg.close('cancel'); renderWork();
     });
 
@@ -681,14 +899,14 @@
 
     /* ---------- customer dialog ---------- */
     const dlg = document.getElementById('cdlg'), form = document.getElementById('cform');
-    const CFIELDS = ['name', 'email', 'phone', 'household', 'location', 'status', 'referred_by', 'address', 'home', 'vehicles', 'pets', 'emergency_contacts', 'notes'];
+    const CFIELDS = ['name', 'email', 'phone', 'household', 'location', 'stage', 'referred_by', 'address', 'home', 'vehicles', 'pets', 'emergency_contacts', 'notes'];
     let editing = null;
     function openCustomer(c) {
       editing = c || null; form.reset();
       document.getElementById('cdlg-title').textContent = c ? 'Edit customer' : 'New customer';
       document.getElementById('cdelete').hidden = !c;
       form.elements.referred_by.innerHTML = '<option value="">No one</option>' + customers.filter(x => !c || x.id !== c.id).map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('');
-      if (c) for (const k of CFIELDS) form.elements[k].value = c[k] || (k === 'status' ? 'Intake' : '');
+      if (c) for (const k of CFIELDS) form.elements[k].value = k === 'stage' ? stageOf(c) : (c[k] || '');
       dlg.showModal(); form.elements.name.focus();
     }
     document.getElementById('new-customer').addEventListener('click', () => openCustomer(null));
@@ -696,7 +914,8 @@
       if (dlg.returnValue !== 'save') return;
       const data = {}; for (const k of CFIELDS) data[k] = form.elements[k].value.trim() || null;
       if (RS.live && customers.length && !('referred_by' in customers[0])) delete data.referred_by; // column not added yet
-      data.status = data.status || 'Intake';
+      data.stage = data.stage || 'Lead';
+      if (editing && data.stage !== stageOf(editing)) { const dk = STAGE_DATE[data.stage]; if (dk && !editing[dk]) data[dk] = todayStr(); }
       if (!data.name) return;
       const where = data.address || data.location;
       const moved = !editing || where !== (editing.address || editing.location);

@@ -4,7 +4,7 @@
   const CFG = window.RS_CONFIG || {};
   const LIVE = !!(CFG.SUPABASE_URL && CFG.SUPABASE_KEY && window.supabase);
   const sb = LIVE ? window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY) : null;
-  const TABLES = ['settings', 'categories', 'gear', 'customers', 'customer_gear', 'modules', 'customer_modules', 'tasks', 'members'];
+  const TABLES = ['settings', 'categories', 'gear', 'customers', 'customer_gear', 'modules', 'customer_modules', 'tasks', 'members', 'assessment_notes', 'customer_module_completions'];
   const LS_KEY = 'rs-admin-demo-v1';
 
   /* ---------- local backend ---------- */
@@ -28,7 +28,9 @@
     async remove(t, id) {
       mem[t] = mem[t].filter(x => x.id !== id);
       // emulate FK cascades
-      if (t === 'customers') { mem.customer_gear = mem.customer_gear.filter(x => x.customer_id !== id); mem.customer_modules = mem.customer_modules.filter(x => x.customer_id !== id); mem.tasks = mem.tasks.filter(x => x.customer_id !== id); mem.members = mem.members.filter(x => x.customer_id !== id); }
+      if (t === 'customers') { mem.customer_gear = mem.customer_gear.filter(x => x.customer_id !== id); mem.customer_modules = mem.customer_modules.filter(x => x.customer_id !== id); mem.tasks = mem.tasks.filter(x => x.customer_id !== id); mem.members = mem.members.filter(x => x.customer_id !== id); mem.assessment_notes = mem.assessment_notes.filter(x => x.customer_id !== id); }
+      if (t === 'customer_modules') mem.customer_module_completions = mem.customer_module_completions.filter(x => x.customer_module_id !== id);
+      if (t === 'members') { mem.customer_module_completions = mem.customer_module_completions.filter(x => x.member_id !== id); mem.customer_gear.forEach(g => { if (g.member_id === id) g.member_id = null; }); }
       if (t === 'gear') mem.customer_gear = mem.customer_gear.filter(x => x.gear_id !== id);
       if (t === 'modules') mem.customer_modules = mem.customer_modules.filter(x => x.module_id !== id);
       if (t === 'categories') mem.gear.forEach(g => { if (g.category_id === id) g.category_id = null; });
@@ -180,6 +182,10 @@
   }
   const TASK_KINDS =['Consultation', 'Delivery', 'Training session', 'Annual check', 'Refresh / restock', 'Follow-up', 'Other'];
   const ADMIN_NAMES = (CFG.ADMINS || []).map(a => a.name);
+  // The client flow, in order. Stages with a date stamp it the first time a client reaches them.
+  const STAGES = ['Lead', 'Call', 'Assessment', 'Spec sent', 'Accepted', 'Building', 'Delivered', 'Trained', 'Member'];
+  const STAGE_DATE = { 'Call': 'called_on', 'Assessment': 'assessed_on', 'Spec sent': 'spec_sent_on', 'Accepted': 'spec_accepted_on', 'Delivered': 'delivered_on', 'Trained': 'trained_on' };
+  const stageOf = c => (c && STAGES.includes(c.stage) ? c.stage : 'Lead');
 
-  window.RS = { geocode, fmtDate, TASK_KINDS, ADMIN_NAMES, completeTask, store, auth, ensureSeed, settings, money, esc, toast, header, live: LIVE, uid };
+  window.RS = { STAGES, STAGE_DATE, stageOf, geocode, fmtDate, TASK_KINDS, ADMIN_NAMES, completeTask, store, auth, ensureSeed, settings, money, esc, toast, header, live: LIVE, uid };
 })();
