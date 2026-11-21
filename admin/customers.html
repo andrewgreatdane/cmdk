@@ -33,11 +33,19 @@
     .c-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .c-notes { margin: 6px 0 0; font-size: 13px; color: var(--ink-3); max-width: 70ch; white-space: pre-wrap; }
 
-    /* totals live in the top bar, like the gear page */
-    .adm-slot { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
-    .adm-slot .amt { font-family: var(--mono); font-size: 30px; font-weight: 500; font-variant-numeric: tabular-nums; }
-    .adm-slot .cnt { font-family: var(--mono); font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-    .adm-slot .over { color: #a3271b; }
+    /* package running total: gear section only, pinned under the top bar */
+    .pktotal { position: sticky; top: var(--hh, 112px); z-index: 5; background: var(--bg); border-bottom: 2px solid var(--rule); padding: 10px 0 8px; margin: -8px 0 20px; display: flex; align-items: baseline; gap: 6px 16px; flex-wrap: wrap; }
+    .pktotal .amt { font-family: var(--mono); font-size: 30px; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .pktotal .cnt { font-family: var(--mono); font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+    .pktotal .over { color: #a3271b; }
+    .pktotal details { flex-basis: 100%; font-size: 12px; color: var(--ink-3); }
+    .pktotal summary { cursor: pointer; width: max-content; }
+    .pktotal details .cnt { display: block; padding-top: 4px; }
+    /* profile summary */
+    .psum { margin: 0 0 32px; max-width: 78ch; }
+    .psum p { margin: 8px 0 0; font-size: 15px; line-height: 1.55; }
+    .psum .none { color: var(--ink-3); font-size: 13px; }
+    .psum blockquote { margin: 10px 0 0; padding-left: 12px; border-left: 2px solid var(--rule-soft); color: var(--ink-2); font-size: 14px; white-space: pre-wrap; }
 
     .cols { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px; align-items: start; margin-bottom: 48px; }
     .side { position: sticky; top: 128px; }
@@ -197,7 +205,7 @@
       .bh.right { margin-top: 10px; }
       .bandhead .colhead:last-child { display: none; }
       .work { padding: 20px 16px 60px; }
-      .adm-slot .amt { font-size: 24px; }
+      .pktotal .amt { font-size: 24px; }
     }
     @media (max-width: 520px) { .pi { grid-template-columns: minmax(0,1fr) auto auto auto; } .pi .unit { display: none; } }
   </style>
@@ -310,6 +318,8 @@
     const { store, money, esc, toast } = RS;
     const user = await RS.auth.guard();
     RS.header('customers.html', user);
+    const setHH = () => document.documentElement.style.setProperty('--hh', document.querySelector('.adm-header').offsetHeight + 'px');
+    setHH(); window.addEventListener('resize', setHH);
     if (RS.live) { // let invited admins set a password after using an email link
       const b = document.createElement('button'); b.className = 'adm-link'; b.type = 'button'; b.textContent = 'Set password';
       document.querySelector('.adm-user').insertBefore(b, document.getElementById('adm-signout'));
@@ -399,12 +409,13 @@
     const PALLET_L = 1890, PALLET_KG = 1000;
     function pallets(t) { const p = Math.max(t.ship / PALLET_L, t.kg / PALLET_KG); return p ? `≈${p < 0.1 ? p.toFixed(2) : p.toFixed(1)} pallet` : '0 pallet'; }
     function renderTotals(c) {
-      const el = document.getElementById('adm-slot'); if (!el) return;
-      if (!c) { el.innerHTML = ''; return; }
+      const el = document.getElementById('pk-total'); if (!el || !c) return;
+      const wasOpen = !!(el.querySelector('details') && el.querySelector('details').open);
       const t = totals(c), m = t.sell - t.cost, pct = t.sell ? (m / t.sell) * 100 : 0;
       const vol = (t.cap ? `<span class="${t.vol > t.cap ? 'over' : ''}">${t.est ? '≈' : ''}${t.vol.toFixed(1)} / ${t.cap.toFixed(1)} L in case</span>` : `${t.est ? '≈' : ''}${t.vol.toFixed(1)} L`) + ` · ${t.ship.toFixed(1)} L to ship`;
-      el.innerHTML = `<span class="lbl">Package</span><span class="amt">${money.cad(t.sell)}</span>
-        <span class="cnt">${t.units} item${t.units === 1 ? '' : 's'} · ${vol} · ${t.kg.toFixed(1)} kg${t.noW ? ` (${t.noW} without weight)` : ''} · ${pallets(t)} · cost ${money.cad(t.cost)} · margin ${money.cad(m)} (${pct.toFixed(0)}%) · ${money.cad(t.sell / S.rate)} USD</span>`;
+      el.innerHTML = `<span class="lbl">Package total</span><span class="amt">${money.cad(t.sell)}</span>
+        <span class="cnt">${t.units} item${t.units === 1 ? '' : 's'}</span>
+        <details ${wasOpen ? 'open' : ''}><summary>Cost, margin and shipping</summary><span class="cnt">cost ${money.cad(t.cost)} · margin ${money.cad(m)} (${pct.toFixed(0)}%) · ${money.cad(t.sell / S.rate)} USD · ${vol} · ${t.kg.toFixed(1)} kg${t.noW ? ` (${t.noW} without weight)` : ''} · ${pallets(t)}</span></details>`;
     }
 
     function refLine(c) {
@@ -437,10 +448,18 @@
         </div>
         ${pipeHTML(c)}
         <nav class="tabs" role="tablist">
-          ${[['onboarding', `Onboarding${nMem ? ' (' + nMem + ')' : ''}`], ['gear', 'Gear'], ['build', 'Build'], ['training', 'Training'], ['schedule', 'Schedule']].map(([k, l]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${tab === k}">${l}</button>`).join('')}
+          ${[['onboarding', `Profile${nMem ? ' (' + nMem + ')' : ''}`], ['gear', 'Gear'], ['build', 'Build'], ['training', 'Training'], ['schedule', 'Schedule']].map(([k, l]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${tab === k}">${l}</button>`).join('')}
         </nav>
 
         <section data-pane="onboarding" ${tab === 'onboarding' ? '' : 'hidden'}>
+          <div class="psum">
+            <h2 class="h2"><span>Summary</span><span class="sub">${c.intake_submitted_at ? 'From their questionnaire · ' + day(c.intake_submitted_at) : 'Questionnaire not submitted'}</span></h2>
+            ${summaryHTML(c)}
+          </div>
+          <div class="sect">
+            <h2 class="h2"><span>At a glance</span></h2>
+            <dl class="facts">${glanceHTML(c)}</dl>
+          </div>
           <div class="cols">
             <div>
               <h2 class="h2"><span>Household members</span><button type="button" class="adm-link" id="add-member">+ Add person</button></h2>
@@ -468,6 +487,7 @@
         </section>
 
         <section data-pane="gear" ${tab === 'gear' ? '' : 'hidden'}>
+          <div class="pktotal" id="pk-total"></div>
           <div class="band bandhead">
             <div class="colhead"><span class="lbl">Catalog — click to add or remove</span><input class="inp" type="search" id="gsearch" placeholder="Filter gear" aria-label="Filter gear" value="${esc(catQuery)}"></div>
             <div class="colhead"><span class="lbl">Their package</span><span class="lbl" id="pk-count"></span></div>
@@ -567,6 +587,55 @@
       renderTotals(c); renderCatalog(c); renderPackage(c); renderTraining(c); renderMembers(c); renderTasks(c); renderNotes(c); renderBuild(c); renderMatrix(c);
     }
 
+    /* ---------- profile summary, written from the questionnaire answers ---------- */
+    function summaryHTML(c) {
+      if (!c.intake_submitted_at) return `<p class="none">${c.intake_token ? 'The questionnaire link has been created but the client has not submitted it yet.' : 'No questionnaire yet.'} Use “Copy intake link” to send it. Their answers will be summarised here.</p>`;
+      const i = c.intake || {}, yr = new Date().getFullYear(), t = v => String(v || '').trim().replace(/[.\s]+$/, '');
+      const mem = members.filter(m => m.customer_id === c.id).sort((a, b) => (a.sort || 0) - (b.sort || 0));
+      const list = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+      const out = [];
+      if (mem.length) {
+        const kids = mem.filter(m => m.birth_year && yr - m.birth_year < 18).length;
+        const who = mem.map(m => `${esc(m.name)}${m.birth_year || m.relationship ? ' (' + [m.birth_year ? yr - m.birth_year : '', esc(m.relationship || '').toLowerCase()].filter(Boolean).join(', ') + ')' : ''}`);
+        out.push(`Household of ${mem.length}${kids ? `, ${kids} under 18` : ''}: ${list(who)}.`);
+      } else if (t(c.household)) out.push(`Household: ${esc(t(c.household))}.`);
+      const where = t(c.address) || t(i.city) || t(c.location);
+      if (where) out.push(`Based at ${esc(where)}.`);
+      if (t(c.home)) out.push(`Home: ${esc(t(c.home))}.`);
+      if (t(i.other_locations)) out.push(`Other locations: ${esc(t(i.other_locations))}.`);
+      if (t(c.vehicles)) out.push(`Vehicles: ${esc(t(c.vehicles))}.`);
+      if (t(c.pets)) out.push(`Pets: ${esc(t(c.pets))}.`);
+      if ((i.concerns || []).length) out.push(`Most concerned about ${list(i.concerns.map(x => esc(String(x).toLowerCase())))}.`);
+      if (t(i.timeline)) out.push(`Timeline: ${esc(t(i.timeline))}.`);
+      if (t(i.contact_pref)) out.push(`Prefers contact by ${esc(t(i.contact_pref).toLowerCase())}.`);
+      if (t(i.referral)) out.push(`Heard about us: ${esc(t(i.referral))}.`);
+      return `<p>${out.join(' ') || 'The questionnaire was submitted with no details filled in.'}</p>${t(i.notes) ? `<blockquote>${esc(i.notes.trim())}</blockquote>` : ''}`;
+    }
+
+    // Everything else we hold on this client, pulled from the other tabs into one place.
+    function glanceHTML(c) {
+      const i = c.intake || {}, t = totals(c), lines = cg.filter(x => x.customer_id === c.id && gearById(x.gear_id));
+      const ready = lines.filter(l => l.packed_at && l.checked_at).length;
+      const mine = cm.filter(x => x.customer_id === c.id), mem = members.filter(m => m.customer_id === c.id);
+      const done = comps.filter(k => mine.some(x => x.id === k.customer_module_id) && mem.some(m => m.id === k.member_id)).length;
+      const dates = [['Call', c.called_on], ['Assessment', c.assessed_on], ['Spec sent', c.spec_sent_on], ['Spec accepted', c.spec_accepted_on], ['Deposit', c.deposit_paid_on], ['Delivered', c.delivered_on], ['Final payment', c.final_paid_on], ['Trained', c.trained_on], ['Renewal due', c.delivered_on ? plusYear(c.delivered_on) : null]].filter(d => d[1]).map(d => `${d[0]} ${RS.fmtDate(d[1])}`);
+      const next = tasks.filter(x => x.customer_id === c.id && !x.done_at).sort((x, y) => x.due_date.localeCompare(y.due_date))[0];
+      const by = customers.find(x => x.id === c.referred_by);
+      const rows = [
+        ['Contact', [c.email, c.phone, i.contact_pref ? 'prefers ' + String(i.contact_pref).toLowerCase() : ''].filter(Boolean).join(' · ')],
+        ['Stage', stageOf(c)],
+        ['Key dates', dates.join(' · ')],
+        ['Questionnaire', c.intake_submitted_at ? 'Submitted ' + day(c.intake_submitted_at) : (c.intake_token ? 'Link created, not submitted' : 'Not sent')],
+        ['Package', lines.length ? `${t.units} item${t.units === 1 ? '' : 's'} · ${money.cad(t.sell)}` : ''],
+        ['Build', lines.length ? `${ready} of ${lines.length} packed and checked${c.build_signed_off_at ? ' · signed off by ' + (c.build_signed_off_by || '') + ' ' + day(c.build_signed_off_at) : ''}` : ''],
+        ['Delivery', c.accepted_by ? 'Accepted by ' + c.accepted_by : ''],
+        ['Training', mine.length ? `${mine.length} module${mine.length === 1 ? '' : 's'}${mem.length ? ` · ${done} of ${mine.length * mem.length} completions` : ''}` : ''],
+        ['Next', next ? `${next.kind}${next.title ? ' — ' + next.title : ''} · ${RS.fmtDate(next.due_date)}` : ''],
+        ['Referred by', by ? by.name : ''],
+      ];
+      return rows.map(([k, v]) => `<dt>${k}</dt><dd>${v ? esc(v) : '<span class="muted">—</span>'}</dd>`).join('');
+    }
+
     /* ---------- pipeline ---------- */
     function pipeHTML(c) {
       const at = STAGES.indexOf(stageOf(c));
@@ -660,7 +729,7 @@
       const mine = cm.filter(x => x.customer_id === c.id).sort((a, b) => a.position - b.position).filter(x => modules.some(m => m.id === x.module_id));
       const mem = members.filter(m => m.customer_id === c.id).sort((a, b) => (a.sort || 0) - (b.sort || 0));
       const cnt = document.getElementById('tm-count');
-      if (!mine.length || !mem.length) { cnt.textContent = ''; host.innerHTML = `<p class="tl-empty">${!mine.length ? 'Add modules to the training path first.' : 'Add household members on the Onboarding tab to track who has completed each module.'}</p>`; return; }
+      if (!mine.length || !mem.length) { cnt.textContent = ''; host.innerHTML = `<p class="tl-empty">${!mine.length ? 'Add modules to the training path first.' : 'Add household members on the Profile tab to track who has completed each module.'}</p>`; return; }
       const has = (x, m) => comps.find(k => k.customer_module_id === x.id && k.member_id === m.id);
       const done = mine.reduce((s, x) => s + mem.filter(m => has(x, m)).length, 0);
       cnt.textContent = `${done} of ${mine.length * mem.length} complete`;
