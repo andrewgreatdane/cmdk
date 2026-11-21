@@ -34,13 +34,20 @@
     .c-notes { margin: 6px 0 0; font-size: 13px; color: var(--ink-3); max-width: 70ch; white-space: pre-wrap; }
 
     /* package running total: gear section only, pinned under the top bar */
-    .pktotal { position: sticky; top: var(--hh, 112px); z-index: 5; background: var(--bg); border-bottom: 2px solid var(--rule); padding: 10px 0 8px; margin: -8px 0 20px; display: flex; align-items: baseline; gap: 6px 16px; flex-wrap: wrap; }
+    .pktotal { position: sticky; top: var(--hh, 112px); z-index: 5; background: var(--bg); border-bottom: 2px solid var(--rule); padding: 10px 0 8px; margin: -8px 0 20px; }
+    .pkrow { display: flex; align-items: baseline; gap: 6px 16px; flex-wrap: wrap; }
+    .pktotal .ctx { font-size: 12px; color: var(--ink-3); margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--rule-soft); }
+    .pktotal .ctx > summary { letter-spacing: .08em; text-transform: uppercase; }
+    .ctxb { max-height: 26vh; overflow: auto; color: var(--ink); max-width: 100ch; }
+    .ctxb p { margin: 6px 0 0; font-size: 13px; line-height: 1.5; }
+    .ctxb blockquote { margin: 6px 0 0; padding-left: 10px; border-left: 2px solid var(--rule-soft); color: var(--ink-2); font-size: 13px; white-space: pre-wrap; }
+    .ctxb .none { color: var(--ink-3); }
     .pktotal .amt { font-family: var(--mono); font-size: 30px; font-weight: 500; font-variant-numeric: tabular-nums; }
     .pktotal .cnt { font-family: var(--mono); font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
     .pktotal .over { color: #a3271b; }
-    .pktotal details { flex-basis: 100%; font-size: 12px; color: var(--ink-3); }
+    .pkrow details { flex-basis: 100%; font-size: 12px; color: var(--ink-3); }
     .pktotal summary { cursor: pointer; width: max-content; }
-    .pktotal details .cnt { display: block; padding-top: 4px; }
+    .pkrow details .cnt { display: block; padding-top: 4px; }
     /* profile summary */
     .psum { margin: 0 0 32px; max-width: 78ch; }
     .psum p { margin: 8px 0 0; font-size: 15px; line-height: 1.55; }
@@ -261,41 +268,7 @@
   <dialog class="adm-dialog" id="mdlg">
     <form method="dialog" id="mform">
       <div class="dlg-head"><h2 id="mdlg-title">Person</h2><button class="adm-link" value="cancel" formnovalidate>Close</button></div>
-      <div class="dlg-body">
-        <div class="grid2">
-          <label class="field"><span class="lbl">Name</span><input name="name" required></label>
-          <label class="field"><span class="lbl">Relationship</span><input name="relationship" placeholder="e.g. Spouse, Son, Mother"></label>
-        </div>
-        <div class="grid2">
-          <label class="field"><span class="lbl">Birth year</span><input name="birth_year" type="number" min="1900" max="2100" placeholder="e.g. 1984"></label>
-          <label class="field"><span class="lbl">Sex</span><select name="sex"><option value=""></option><option>Female</option><option>Male</option><option>Other</option></select></label>
-        </div>
-        <div class="grid2">
-          <label class="field"><span class="lbl">Height</span><input name="height" placeholder="e.g. 5'10&quot; / 178 cm"></label>
-          <label class="field"><span class="lbl">Weight</span><input name="weight" placeholder="e.g. 170 lb"></label>
-        </div>
-        <p class="msec">Sizes</p>
-        <div class="grid2">
-          <label class="field"><span class="lbl">Top / jacket</span><input name="size_top"></label>
-          <label class="field"><span class="lbl">Pants (waist × inseam)</span><input name="size_bottom"></label>
-        </div>
-        <div class="grid2">
-          <label class="field"><span class="lbl">Shoe</span><input name="size_shoe"></label>
-          <label class="field"><span class="lbl">Gloves / hat</span><input name="size_other"></label>
-        </div>
-        <p class="msec">Health</p>
-        <div class="grid2">
-          <label class="field"><span class="lbl">Blood type</span><input name="blood_type"></label>
-          <label class="field"><span class="lbl">Allergies</span><input name="allergies"></label>
-        </div>
-        <label class="field"><span class="lbl">Medical conditions</span><textarea name="medical"></textarea></label>
-        <label class="field"><span class="lbl">Medications &amp; supply needed</span><textarea name="medications" placeholder="Name, dose, how many days on hand"></textarea></label>
-        <div class="grid2">
-          <label class="field"><span class="lbl">Diet</span><input name="diet" placeholder="e.g. gluten-free, infant formula"></label>
-          <label class="field"><span class="lbl">Mobility / special needs</span><input name="mobility" placeholder="e.g. glasses, hearing aid, wheelchair"></label>
-        </div>
-        <label class="field"><span class="lbl">Skills &amp; other notes</span><textarea name="notes" placeholder="e.g. nurse, ham licence, fear of water"></textarea></label>
-      </div>
+      <div class="dlg-body" id="mbody"></div>
       <div class="dlg-foot"><button class="btn btn-danger" type="button" id="mdelete">Remove person</button><span class="spacer"></span><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn btn-solid" value="save">Save</button></div>
     </form>
   </dialog>
@@ -312,6 +285,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
   <script src="config.js"></script>
   <script src="seed.js"></script>
+  <script src="questions-default.js"></script>
   <script src="core.js"></script>
   <script>
   (async function () {
@@ -331,7 +305,8 @@
     }
     if (await RS.ensureSeed()) toast('Starter catalog loaded');
 
-    let S, cats, gear, customers, cg, cm, modules, members, tasks, notes, comps;
+    let S, cats, gear, customers, cg, cm, modules, members, tasks, notes, comps, HQ = [], PQ = [];
+    let gearCtx = (() => { try { return localStorage.getItem('rs-gctx') !== '0'; } catch (e) { return true; } })();
     const { STAGES, STAGE_DATE, stageOf } = RS;
     const me = user.name || user.email || 'Admin';
     const todayStr = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
@@ -349,6 +324,7 @@
         store.list('customer_gear'), store.list('customer_modules'), store.list('modules'),
         store.list('members').catch(() => []), store.list('tasks').catch(() => []),
         store.list('assessment_notes').catch(() => []), store.list('customer_module_completions').catch(() => [])]);
+      const qs = await RS.questions(); HQ = qs.filter(q => q.scope === 'household'); PQ = qs.filter(q => q.scope === 'person');
       cats.sort((a, b) => a.sort - b.sort);
       gear.sort((a, b) => a.sort - b.sort);
       modules.sort((a, b) => a.sort - b.sort);
@@ -457,22 +433,12 @@
             ${summaryHTML(c)}
           </div>
           <div class="sect">
-            <h2 class="h2"><span>At a glance</span></h2>
+            <h2 class="h2"><span>At a glance</span><button type="button" class="adm-link" id="edit-c2">Edit</button></h2>
             <dl class="facts">${glanceHTML(c)}</dl>
           </div>
-          <div class="cols">
-            <div>
-              <h2 class="h2"><span>Household members</span><button type="button" class="adm-link" id="add-member">+ Add person</button></h2>
-              <ul class="mem" id="members"></ul>
-            </div>
-            <div>
-              <h2 class="h2"><span>Home &amp; logistics</span><button type="button" class="adm-link" id="edit-c2">Edit</button></h2>
-              <dl class="facts">
-                ${[['Address', c.address], ['Household', c.household], ['Home', c.home], ['Vehicles', c.vehicles], ['Pets', c.pets], ['Emergency contacts', c.emergency_contacts],
-                  ...(c.intake ? [['Concerns', (c.intake.concerns || []).join(', ')], ['Timeline', c.intake.timeline], ['Other locations', c.intake.other_locations], ['Contact by', c.intake.contact_pref], ['Heard about us', c.intake.referral], ['Client notes', c.intake.notes]] : []),
-                  ['Our notes', c.notes]].map(([k, v]) => `<dt>${k}</dt><dd>${v ? esc(v) : '<span class="muted">—</span>'}</dd>`).join('')}
-              </dl>
-            </div>
+          <div class="sect">
+            <h2 class="h2"><span>Household members</span><button type="button" class="adm-link" id="add-member">+ Add person</button></h2>
+            <ul class="mem" id="members"></ul>
           </div>
           <div class="sect">
             <h2 class="h2"><span>Assessment: what they need and why</span><span class="sub" id="an-count"></span></h2>
@@ -487,7 +453,10 @@
         </section>
 
         <section data-pane="gear" ${tab === 'gear' ? '' : 'hidden'}>
-          <div class="pktotal" id="pk-total"></div>
+          <div class="pktotal">
+            <details class="ctx" id="gctx" ${gearCtx ? 'open' : ''}><summary>Client summary and needs</summary><div class="ctxb">${summaryHTML(c)}${needsHTML(c)}</div></details>
+            <div class="pkrow" id="pk-total"></div>
+          </div>
           <div class="band bandhead">
             <div class="colhead"><span class="lbl">Catalog — click to add or remove</span><input class="inp" type="search" id="gsearch" placeholder="Filter gear" aria-label="Filter gear" value="${esc(catQuery)}"></div>
             <div class="colhead"><span class="lbl">Their package</span><span class="lbl" id="pk-count"></span></div>
@@ -570,6 +539,7 @@
       document.getElementById('edit-c').addEventListener('click', () => openCustomer(c));
       const gs = document.getElementById('gsearch');
       gs.addEventListener('input', () => { catQuery = gs.value; renderCatalog(c); });
+      document.getElementById('gctx').addEventListener('toggle', e => { gearCtx = e.target.open; try { localStorage.setItem('rs-gctx', gearCtx ? '1' : '0'); } catch (x) {} });
       document.querySelectorAll('.pipe [data-stage]').forEach(b => b.addEventListener('click', () => setStage(c, b.dataset.stage)));
       document.getElementById('anform').addEventListener('submit', async e => {
         e.preventDefault(); const f = e.target.elements; const need = f.need.value.trim(); if (!need) return;
@@ -609,10 +579,22 @@
       if (t(i.timeline)) out.push(`Timeline: ${esc(t(i.timeline))}.`);
       if (t(i.contact_pref)) out.push(`Prefers contact by ${esc(t(i.contact_pref).toLowerCase())}.`);
       if (t(i.referral)) out.push(`Heard about us: ${esc(t(i.referral))}.`);
+      const told = ['address', 'city', 'home', 'other_locations', 'vehicles', 'pets', 'concerns', 'timeline', 'contact_pref', 'referral', 'notes', 'has_pets', 'has_children', 'emergency_contacts'];
+      for (const q of HQ) { const a = t(RS.answerText(hval(c, q))); if (a && !told.includes(q.key)) out.push(`${esc(q.label.replace(/[?:.\s]+$/, ''))}: ${esc(a)}.`); }
       return `<p>${out.join(' ') || 'The questionnaire was submitted with no details filled in.'}</p>${t(i.notes) ? `<blockquote>${esc(i.notes.trim())}</blockquote>` : ''}`;
     }
 
-    // Everything else we hold on this client, pulled from the other tabs into one place.
+    // A household answer: some live in their own customer column, the rest in the questionnaire record.
+    function hval(c, q) {
+      const i = c.intake || {};
+      if (q.key === 'city') return i.city || c.location;
+      return RS.CUSTOMER_COLS.includes(q.key) ? (c[q.key] != null && c[q.key] !== '' ? c[q.key] : i[q.key]) : i[q.key];
+    }
+    function needsHTML(c) {
+      const list = notes.filter(n => n.customer_id === c.id).sort((a, b) => (a.sort || 0) - (b.sort || 0));
+      return list.length ? `<p><b>Needs:</b> ${list.map(n => `${esc(n.area ? n.area + ': ' : '')}${esc(n.need)}${n.reason ? ' <span class="muted">(' + esc(n.reason) + ')</span>' : ''}`).join(' · ')}</p>` : '<p class="none">No needs logged yet. Add them on the Profile tab.</p>';
+    }
+    // Everything we hold on this client in one place: every questionnaire answer plus where they stand.
     function glanceHTML(c) {
       const i = c.intake || {}, t = totals(c), lines = cg.filter(x => x.customer_id === c.id && gearById(x.gear_id));
       const ready = lines.filter(l => l.packed_at && l.checked_at).length;
@@ -626,6 +608,9 @@
         ['Stage', stageOf(c)],
         ['Key dates', dates.join(' · ')],
         ['Questionnaire', c.intake_submitted_at ? 'Submitted ' + day(c.intake_submitted_at) : (c.intake_token ? 'Link created, not submitted' : 'Not sent')],
+        ...HQ.filter(q => q.key !== 'contact_pref').filter(q => !q.show_if_key || RS.answerText(hval(c, q))).map(q => [q.label, RS.answerText(hval(c, q))]),
+        ['Household', c.household],
+        ['Our notes', c.notes],
         ['Package', lines.length ? `${t.units} item${t.units === 1 ? '' : 's'} · ${money.cad(t.sell)}` : ''],
         ['Build', lines.length ? `${ready} of ${lines.length} packed and checked${c.build_signed_off_at ? ' · signed off by ' + (c.build_signed_off_by || '') + ' ' + day(c.build_signed_off_at) : ''}` : ''],
         ['Delivery', c.accepted_by ? 'Accepted by ' + c.accepted_by : ''],
@@ -633,7 +618,7 @@
         ['Next', next ? `${next.kind}${next.title ? ' — ' + next.title : ''} · ${RS.fmtDate(next.due_date)}` : ''],
         ['Referred by', by ? by.name : ''],
       ];
-      return rows.map(([k, v]) => `<dt>${k}</dt><dd>${v ? esc(v) : '<span class="muted">—</span>'}</dd>`).join('');
+      return rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${v ? esc(v) : '<span class="muted">—</span>'}</dd>`).join('');
     }
 
     /* ---------- pipeline ---------- */
@@ -904,14 +889,14 @@
     });
 
     /* ---------- onboarding: household members ---------- */
-    const MFIELDS = ['name', 'relationship', 'birth_year', 'sex', 'height', 'weight', 'size_top', 'size_bottom', 'size_shoe', 'size_other', 'blood_type', 'allergies', 'medical', 'medications', 'diet', 'mobility', 'notes'];
+    const pval = (m, q) => (RS.MEMBER_COLS.includes(q.key) ? m[q.key] : (m.answers || {})[q.key]);
     function renderMembers(c) {
       const host = document.getElementById('members'); if (!host) return;
       const list = members.filter(m => m.customer_id === c.id).sort((a, b) => (a.sort || 0) - (b.sort || 0) || (a.birth_year || 0) - (b.birth_year || 0));
       const yr = new Date().getFullYear();
       host.innerHTML = list.length ? list.map(m => {
         const sizes = [m.size_top && 'Top ' + m.size_top, m.size_bottom && 'Pants ' + m.size_bottom, m.size_shoe && 'Shoe ' + m.size_shoe, m.size_other].filter(Boolean).join(' · ');
-        const flags = [m.allergies && 'Allergies: ' + m.allergies, m.medical && 'Medical: ' + m.medical, m.medications && 'Meds: ' + m.medications, m.mobility && m.mobility, m.diet && 'Diet: ' + m.diet].filter(Boolean).join(' · ');
+        const flags = [m.mobility, m.diet && 'Diet: ' + m.diet, ...PQ.filter(q => !RS.MEMBER_COLS.includes(q.key) && RS.answerText(pval(m, q))).map(q => q.label + ': ' + RS.answerText(pval(m, q)))].filter(Boolean).join(' · ');
         return `<li data-mid="${m.id}" tabindex="0"><span class="nm">${esc(m.name)}${m.relationship ? ` <span class="muted" style="font-weight:400">· ${esc(m.relationship)}</span>` : ''}</span>
           <span class="age">${m.birth_year ? (yr - m.birth_year) + ' yrs' : ''}${m.sex ? ' · ' + esc(m.sex) : ''}</span>
           ${sizes ? `<span class="sub">${esc(sizes)}</span>` : ''}${flags ? `<span class="flag">${esc(flags)}</span>` : ''}</li>`;
@@ -927,13 +912,23 @@
       memberFor = c; editingM = m || null; mform.reset();
       document.getElementById('mdlg-title').textContent = m ? 'Edit person' : 'Add person';
       document.getElementById('mdelete').hidden = !m;
-      if (m) for (const k of MFIELDS) mform.elements[k].value = m[k] != null ? m[k] : '';
+      const ctl = q => q.kind === 'longtext' ? `<textarea name="q.${esc(q.key)}" placeholder="${esc(q.help || '')}"></textarea>`
+        : (q.kind === 'choice' || q.kind === 'yesno') ? `<select name="q.${esc(q.key)}"><option value=""></option>${(q.kind === 'yesno' ? ['Yes', 'No'] : (q.options || [])).map(o => `<option>${esc(o)}</option>`).join('')}</select>`
+        : `<input name="q.${esc(q.key)}" placeholder="${esc(q.help || '')}">`;
+      const fld = q => `<label class="field"><span class="lbl">${esc(q.label)}</span>${ctl(q)}</label>`;
+      let body = '<label class="field"><span class="lbl">Name</span><input name="name" required></label>', run = [];
+      const flush = () => { for (let k = 0; k < run.length; k += 2) body += run[k + 1] ? `<div class="grid2">${fld(run[k])}${fld(run[k + 1])}</div>` : fld(run[k]); run = []; };
+      for (const q of PQ) { if (q.kind === 'longtext') { flush(); body += fld(q); } else run.push(q); }
+      flush(); document.getElementById('mbody').innerHTML = body;
+      if (m) { mform.elements.name.value = m.name || ''; for (const q of PQ) { const el = mform.elements['q.' + q.key], v = pval(m, q); if (!el || v == null) continue; if (el.tagName === 'SELECT' && ![...el.options].some(o => o.value === String(v))) el.add(new Option(String(v), String(v))); el.value = RS.answerText(v); } }
       mdlg.showModal(); mform.elements.name.focus();
     }
     mdlg.addEventListener('close', async () => {
       if (mdlg.returnValue !== 'save') return;
-      const d = {}; for (const k of MFIELDS) d[k] = mform.elements[k].value.trim() || null;
-      d.birth_year = d.birth_year ? parseInt(d.birth_year) : null;
+      const d = { name: mform.elements.name.value.trim() }, answers = { ...((editingM && editingM.answers) || {}) };
+      for (const q of PQ) { const v = mform.elements['q.' + q.key].value.trim() || null; if (RS.MEMBER_COLS.includes(q.key)) d[q.key] = v; else if (v) answers[q.key] = v; else delete answers[q.key]; }
+      if ('birth_year' in d) d.birth_year = /^\d{4}$/.test(d.birth_year || '') ? parseInt(d.birth_year) : null;
+      if (Object.keys(answers).length || (editingM && editingM.answers)) d.answers = answers;
       if (!d.name) return;
       if (editingM) Object.assign(editingM, await store.update('members', editingM.id, d));
       else { d.customer_id = memberFor.id; d.sort = members.filter(m => m.customer_id === memberFor.id).length; members.push(await store.insert('members', d)); }

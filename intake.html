@@ -51,6 +51,8 @@
     .checks label:hover { border-color: var(--line-2); }
     .checks label:has(input:checked) { border-color: var(--paper); background: var(--panel-2); }
     .checks input { width: auto; accent-color: #e5e6e7; }
+    .f > .qh { margin: -2px 0 4px; color: var(--muted); font-size: 13px; }
+    div.f { margin-bottom: 16px; }
 
     .person { border: 1px solid var(--line); background: var(--panel); padding: 22px 22px 6px; margin-bottom: 16px; }
     .person .ph { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
@@ -98,42 +100,13 @@
             <label class="f"><span>Email</span><input name="c.email" type="email" autocomplete="email"></label>
             <label class="f"><span>Phone</span><input name="c.phone" type="tel" autocomplete="tel"></label>
           </div>
-          <label class="f"><span>Home address</span><input name="c.address" autocomplete="street-address" placeholder="Street, city, province"></label>
-          <div class="grid">
-            <label class="f"><span>City</span><input name="c.city" autocomplete="address-level2"></label>
-            <label class="f"><span>Best way to reach you</span><select name="i.contact_pref"><option value="">—</option><option>Phone</option><option>Text</option><option>Email</option></select></label>
-          </div>
+          <div id="q-contact"></div>
         </section>
 
-        <section>
-          <div class="sh"><span class="n">02</span><div><h2>Home &amp; logistics</h2><p>What we'll be protecting and working around.</p></div></div>
-          <label class="f"><span>Home</span><textarea name="c.home" placeholder="Type of home, floors, basement, generator, where things could be stored"></textarea></label>
-          <div class="grid">
-            <label class="f"><span>Vehicles</span><input name="c.vehicles" placeholder="Make, model, year"></label>
-            <label class="f"><span>Pets</span><input name="c.pets" placeholder="Type, size, any needs"></label>
-          </div>
-          <label class="f"><span>Other locations</span><input name="i.other_locations" placeholder="Office, cabin, school, a parent's home"></label>
-          <label class="f"><span>Emergency contacts outside the household</span><textarea name="c.emergency_contacts" placeholder="Name, relationship, phone. One per line."></textarea></label>
-        </section>
-
-        <section>
-          <div class="sh"><span class="n">03</span><div><h2>Who lives with you</h2><p>Add each person, including you. Sizes and health details let us pack the right clothing, medication and supplies.</p></div></div>
-          <div id="people"></div>
-          <button type="button" class="btn" id="add-person">Add another person <span aria-hidden="true">+</span></button>
-        </section>
-
-        <section>
-          <div class="sh"><span class="n">04</span><div><h2>What concerns you most</h2><p>Choose any that apply.</p></div></div>
-          <div class="checks" id="concerns"></div>
-          <div class="grid">
-            <label class="f"><span>When would you like to be ready?</span><select name="i.timeline"><option value="">—</option><option>As soon as possible</option><option>Within 3 months</option><option>Within 6 months</option><option>No fixed timeline</option></select></label>
-            <label class="f"><span>How did you hear about us?</span><input name="i.referral"></label>
-          </div>
-          <label class="f"><span>Anything else we should know</span><textarea name="i.notes" placeholder="Past emergencies, skills in the household, travel, anything that matters to you"></textarea></label>
-        </section>
+        <div id="q-sections"></div>
 
         <div class="submit">
-          <label class="consent"><input type="checkbox" id="consent"> <span>I agree that Resilience Systems may store this information, including health details, to plan and maintain our household's preparedness. It is kept private and seen only by our team.</span></label>
+          <label class="consent"><input type="checkbox" id="consent"> <span>I agree that Resilience Systems may store this information to plan and maintain our household's preparedness. It is kept private and seen only by our team.</span></label>
           <p class="err" id="err" role="alert"></p>
           <button class="btn btn-primary" type="submit" id="send">Submit intake <span aria-hidden="true">→</span></button>
         </div>
@@ -147,64 +120,92 @@
     </div>
   </main>
 
-  <template id="person-tpl">
-    <div class="person">
-      <div class="ph"><b>Person <span class="idx"></span></b><button type="button" class="link rm">Remove</button></div>
-      <div class="grid">
-        <label class="f"><span>Name</span><input data-k="name"></label>
-        <label class="f"><span>Relationship to you</span><input data-k="relationship" placeholder="Self, spouse, son…"></label>
-      </div>
-      <div class="grid3">
-        <label class="f"><span>Year born</span><input data-k="birth_year" inputmode="numeric" maxlength="4" placeholder="1984"></label>
-        <label class="f"><span>Sex</span><select data-k="sex"><option value=""></option><option>Female</option><option>Male</option><option>Other</option></select></label>
-        <label class="f"><span>Blood type</span><input data-k="blood_type" placeholder="If known"></label>
-      </div>
-      <div class="grid">
-        <label class="f"><span>Height</span><input data-k="height"></label>
-        <label class="f"><span>Weight</span><input data-k="weight"></label>
-      </div>
-      <p class="sub">Sizes</p>
-      <div class="grid">
-        <label class="f"><span>Top / jacket</span><input data-k="size_top"></label>
-        <label class="f"><span>Pants (waist × inseam)</span><input data-k="size_bottom"></label>
-      </div>
-      <div class="grid">
-        <label class="f"><span>Shoe</span><input data-k="size_shoe"></label>
-        <label class="f"><span>Gloves / hat</span><input data-k="size_other"></label>
-      </div>
-      <p class="sub">Health &amp; needs</p>
-      <label class="f"><span>Allergies</span><input data-k="allergies"></label>
-      <label class="f"><span>Medical conditions</span><textarea data-k="medical"></textarea></label>
-      <label class="f"><span>Medications (name and dose)</span><textarea data-k="medications"></textarea></label>
-      <div class="grid">
-        <label class="f"><span>Diet</span><input data-k="diet" placeholder="Restrictions, infant formula…"></label>
-        <label class="f"><span>Mobility / other needs</span><input data-k="mobility" placeholder="Glasses, hearing aid, wheelchair…"></label>
-      </div>
-      <label class="f"><span>Skills &amp; notes</span><textarea data-k="notes" placeholder="First aid training, radio licence, anything useful"></textarea></label>
-    </div>
-  </template>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="admin/config.js"></script>
+  <script src="admin/questions-default.js"></script>
   <script>
   (async function () {
     const CFG = window.RS_CONFIG;
     const sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY, { auth: { persistSession: false } });
     const token = new URLSearchParams(location.search).get('t');
-    const CONCERNS = ['Earthquake', 'Extended power outage', 'Wildfire or smoke', 'Flooding or storms', 'Civil unrest', 'Evacuating quickly', 'Staying in place for weeks', 'Medical emergency', 'Losing phone and internet', 'Security at home', 'Being apart when it happens', 'Pandemic'];
     const $ = s => document.querySelector(s);
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const form = $('#intake');
-    $('#concerns').innerHTML = CONCERNS.map(c => `<label><input type="checkbox" value="${c}"> ${c}</label>`).join('');
+    const CUSTOMER_COLS = ['address', 'city', 'home', 'vehicles', 'pets', 'emergency_contacts'];
 
-    const people = $('#people'), tpl = $('#person-tpl');
+    // The questions are managed in the admin. If they cannot be loaded, the built-in list is used.
+    let Q = [];
+    try { const { data } = await sb.from('questions').select('*').eq('archived', false).order('sort'); Q = data || []; } catch (e) {}
+    if (!Q.length) Q = window.RS_DEFAULT_QUESTIONS || [];
+    Q = Q.slice().sort((a, b) => a.sort - b.sort);
+    const HQ = Q.filter(q => q.scope === 'household'), PQ = Q.filter(q => q.scope === 'person');
+
+    /* ---------- drawing a question ---------- */
+    // household and per-person questions can share a key, so household controls carry an h. prefix
+    const kk = q => (q.scope === 'household' ? 'h.' : '') + q.key;
+    const short = q => q.kind === 'text' || q.kind === 'choice' || q.kind === 'yesno';
+    function control(q) {
+      const k = esc(kk(q)), ph = q.help ? ` placeholder="${esc(q.help)}"` : '';
+      if (q.kind === 'longtext') return `<textarea data-k="${k}"${ph}></textarea>`;
+      if (q.kind === 'choice' || q.kind === 'yesno') return `<select data-k="${k}"><option value="">—</option>${(q.kind === 'yesno' ? ['Yes', 'No'] : (q.options || [])).map(o => `<option>${esc(o)}</option>`).join('')}</select>`;
+      if (q.kind === 'multi') return `<div class="checks" data-k="${k}" data-multi>${(q.options || []).map(o => `<label><input type="checkbox" value="${esc(o)}"> ${esc(o)}</label>`).join('')}</div>`;
+      return `<input data-k="${k}"${ph}>`;
+    }
+    function field(q) {
+      if (q.kind === 'multi') return `<div class="f" data-q="${esc(kk(q))}"><span>${esc(q.label)}</span>${q.help ? `<p class="qh">${esc(q.help)}</p>` : ''}${control(q)}</div>`;
+      return `<label class="f" data-q="${esc(kk(q))}"><span>${esc(q.label)}</span>${control(q)}</label>`;
+    }
+    // short answers sit two to a row; long ones and tick lists take the full width
+    function layout(qs) {
+      let out = '', run = [];
+      const flush = () => { for (let i = 0; i < run.length; i += 2) out += run[i + 1] ? `<div class="grid">${field(run[i])}${field(run[i + 1])}</div>` : field(run[i]); run = []; };
+      for (const q of qs) { if (short(q)) run.push(q); else { flush(); out += field(q); } }
+      flush(); return out;
+    }
+    const read = (root, q) => { const el = root.querySelector(`[data-k="${kk(q)}"]`); if (!el) return ''; return q.kind === 'multi' ? [...el.querySelectorAll('input:checked')].map(b => b.value) : el.value.trim(); };
+    const write = (root, q, v) => { const el = root.querySelector(`[data-k="${kk(q)}"]`); if (!el || v == null) return; if (q.kind === 'multi') { const set = Array.isArray(v) ? v : [v]; el.querySelectorAll('input').forEach(b => (b.checked = set.includes(b.value))); } else el.value = v; };
+    function visible(q, answers) {
+      if (!q.show_if_key) return true;
+      const want = String(q.show_if_value || '').split('|').map(x => x.trim().toLowerCase()).filter(Boolean);
+      const got = answers[q.show_if_key], have = (Array.isArray(got) ? got : [got]).map(x => String(x == null ? '' : x).trim().toLowerCase()).filter(Boolean);
+      return want.length ? have.some(x => want.includes(x)) : have.length > 0;
+    }
+    // Hide questions whose condition is not met. Runs twice so a chain (A shows B, B shows C) settles.
+    function collect(root, qs, base) {
+      let ans = {};
+      for (let pass = 0; pass < 3; pass++) {
+        const next = {};
+        for (const q of qs) {
+          const on = visible(q, { ...base, ...ans });
+          const wrap = root.querySelector(`[data-q="${kk(q)}"]`); if (wrap) wrap.hidden = !on;
+          if (on) next[q.key] = read(root, q);
+        }
+        ans = next;
+      }
+      root.querySelectorAll('.grid').forEach(g => (g.hidden = [...g.children].every(c => c.hidden)));
+      return ans;
+    }
+
+    /* ---------- build the form ---------- */
+    $('#q-contact').innerHTML = layout(HQ.filter(q => q.section === 'Contact'));
+    const secs = []; HQ.forEach(q => { const s = q.section || 'Other'; if (s !== 'Contact' && !secs.includes(s)) secs.push(s); });
+    const blocks = secs.map(s => ({ title: s, html: `<div data-sec>${layout(HQ.filter(q => (q.section || 'Other') === s))}</div>` }));
+    // the people section sits after the first block of household questions
+    blocks.splice(Math.min(1, blocks.length), 0, { title: 'Who lives with you', sub: "Add each person, including you. Sizes and needs let us pack the right clothing and supplies.", html: '<div id="people"></div><button type="button" class="btn" id="add-person">Add another person <span aria-hidden="true">+</span></button>' });
+    $('#q-sections').innerHTML = blocks.map((b, i) => `<section><div class="sh"><span class="n">${String(i + 2).padStart(2, '0')}</span><div><h2>${esc(b.title)}</h2>${b.sub ? `<p>${esc(b.sub)}</p>` : ''}</div></div>${b.html}</section>`).join('');
+
+    const people = $('#people');
     function addPerson(d) {
-      const el = tpl.content.firstElementChild.cloneNode(true);
-      if (d) el.querySelectorAll('[data-k]').forEach(i => { if (d[i.dataset.k] != null) i.value = d[i.dataset.k]; });
+      const el = document.createElement('div'); el.className = 'person';
+      el.innerHTML = `<div class="ph"><b>Person <span class="idx"></span></b><button type="button" class="link rm">Remove</button></div><label class="f"><span>Name</span><input data-name></label>${layout(PQ)}`;
+      if (d) { el.querySelector('[data-name]').value = d.name || ''; PQ.forEach(q => write(el, q, d[q.key] != null ? d[q.key] : (d.answers || {})[q.key])); }
       el.querySelector('.rm').addEventListener('click', () => { el.remove(); number(); });
-      people.appendChild(el); number();
+      people.appendChild(el); number(); refresh();
     }
     function number() { [...people.children].forEach((p, i) => { p.querySelector('.idx').textContent = i + 1; p.querySelector('.rm').hidden = people.children.length === 1; }); }
+    function refresh() { const h = collect(form, HQ, {}); [...people.children].forEach(p => collect(p, PQ, h)); return h; }
     $('#add-person').addEventListener('click', () => { addPerson(); people.lastElementChild.querySelector('input').focus(); });
+    form.addEventListener('input', refresh); form.addEventListener('change', refresh);
 
     // prefill from a private link
     if (token) {
@@ -212,35 +213,33 @@
       if (error || !data) { $('#err').textContent = 'This intake link is not valid. Please contact us for a new one.'; }
       else {
         const c = data.customer || {}, i = c.intake || {};
-        for (const k of ['name', 'email', 'phone', 'address', 'home', 'vehicles', 'pets', 'emergency_contacts']) if (c[k] && form.elements['c.' + k]) form.elements['c.' + k].value = c[k];
-        for (const k of ['contact_pref', 'other_locations', 'timeline', 'referral', 'notes']) if (i[k] && form.elements['i.' + k]) form.elements['i.' + k].value = i[k];
-        if (i.city) form.elements['c.city'].value = i.city;
-        (i.concerns || []).forEach(v => { const b = [...document.querySelectorAll('#concerns input')].find(x => x.value === v); if (b) b.checked = true; });
+        for (const k of ['name', 'email', 'phone']) if (c[k]) form.elements['c.' + k].value = c[k];
+        HQ.forEach(q => write(form, q, c[q.key] != null && c[q.key] !== '' ? c[q.key] : i[q.key]));
         (data.members || []).forEach(addPerson);
         $('#prefill-note').hidden = !(c.name);
       }
     }
     if (!people.children.length) addPerson();
+    refresh();
 
     form.addEventListener('submit', async e => {
       e.preventDefault();
       const err = $('#err'); err.textContent = '';
       if (form.elements._gotcha.value) return;
-      const v = k => (form.elements[k] ? form.elements[k].value.trim() : '');
+      const v = k => form.elements[k].value.trim();
       if (!v('c.name')) { err.textContent = 'Please add your name.'; form.elements['c.name'].focus(); return; }
       if (!v('c.email') && !v('c.phone')) { err.textContent = 'Please add an email or phone number so we can reach you.'; return; }
       if (!$('#consent').checked) { err.textContent = 'Please tick the consent box to submit.'; return; }
-      const members = [...people.children].map(p => { const o = {}; p.querySelectorAll('[data-k]').forEach(i => (o[i.dataset.k] = i.value.trim())); return o; }).filter(m => m.name);
-      const payload = {
-        customer: { name: v('c.name'), email: v('c.email'), phone: v('c.phone'), address: v('c.address'), city: v('c.city'), home: v('c.home'), vehicles: v('c.vehicles'), pets: v('c.pets'), emergency_contacts: v('c.emergency_contacts'), household: members.length ? `${members.length} ${members.length === 1 ? 'person' : 'people'}` : '' },
-        intake: { city: v('c.city'), contact_pref: v('i.contact_pref'), other_locations: v('i.other_locations'), timeline: v('i.timeline'), referral: v('i.referral'), notes: v('i.notes'), concerns: [...document.querySelectorAll('#concerns input:checked')].map(b => b.value), consent_at: new Date().toISOString() },
-        members,
-      };
+      const h = refresh();
+      const members = [...people.children].map(p => ({ name: p.querySelector('[data-name]').value.trim(), ...collect(p, PQ, h) })).filter(m => m.name);
+      const customer = { name: v('c.name'), email: v('c.email'), phone: v('c.phone'), household: members.length ? `${members.length} ${members.length === 1 ? 'person' : 'people'}` : '' };
+      for (const k of CUSTOMER_COLS) if (k in h) customer[k] = h[k];
+      const payload = { customer, intake: { ...h, consent_at: new Date().toISOString() }, members };
       const btn = $('#send'); btn.disabled = true; btn.firstChild.textContent = 'Sending… ';
-      const { error } = await sb.rpc('intake_submit', { p_token: token || null, p: payload });
+      const { error } = await sb.rpc('intake_submit_v2', { p_token: token || null, p: payload });
       if (error) { btn.disabled = false; btn.firstChild.textContent = 'Submit intake '; err.textContent = 'Something went wrong sending your intake. Please try again, or email andrew@unhingedventures.com.'; return; }
-      // heads-up email to the team (no health details)
-      try { fetch('https://formspree.io/f/xqegpgov', { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ _subject: 'Intake submitted: ' + payload.customer.name, name: payload.customer.name, email: payload.customer.email, phone: payload.customer.phone, message: `${token ? 'Updated' : 'New'} intake for ${payload.customer.name} (${members.length} in household). Full details are in the admin.` }) }); } catch (x) {}
+      // heads-up email to the team (contact details only)
+      try { fetch('https://formspree.io/f/xqegpgov', { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ _subject: 'Intake submitted: ' + customer.name, name: customer.name, email: customer.email, phone: customer.phone, message: `${token ? 'Updated' : 'New'} intake for ${customer.name} (${members.length} in household). Full details are in the admin.` }) }); } catch (x) {}
       $('#formview').hidden = true; $('#doneview').hidden = false; window.scrollTo(0, 0);
     });
   })();

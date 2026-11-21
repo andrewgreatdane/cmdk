@@ -4,7 +4,7 @@
   const CFG = window.RS_CONFIG || {};
   const LIVE = !!(CFG.SUPABASE_URL && CFG.SUPABASE_KEY && window.supabase);
   const sb = LIVE ? window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY) : null;
-  const TABLES = ['settings', 'categories', 'gear', 'customers', 'customer_gear', 'modules', 'customer_modules', 'tasks', 'members', 'assessment_notes', 'customer_module_completions'];
+  const TABLES = ['settings', 'categories', 'gear', 'customers', 'customer_gear', 'modules', 'customer_modules', 'tasks', 'members', 'assessment_notes', 'customer_module_completions', 'questions'];
   const LS_KEY = 'rs-admin-demo-v1';
 
   /* ---------- local backend ---------- */
@@ -142,9 +142,9 @@
     clearTimeout(toast._t); toast._t = setTimeout(() => (el.className = ''), 2600);
   }
   function header(active, user) {
-    const nav = [['customers.html', 'Customers'], ['map.html', 'Map'], ['gear.html', 'Master gear'], ['training.html', 'Training'], ['schedule.html', 'Schedule']];
+    const nav = [['customers.html', 'Customers'], ['map.html', 'Map'], ['gear.html', 'Master gear'], ['questionnaire.html', 'Questionnaire'], ['training.html', 'Training'], ['schedule.html', 'Schedule']];
     const h = document.createElement('header'); h.className = 'adm-header';
-    const title = { 'customers.html': 'Customers', 'map.html': 'Map', 'gear.html': 'Master Gear', 'training.html': 'Training', 'schedule.html': 'Schedule' }[active] || 'Admin';
+    const title = { 'customers.html': 'Customers', 'map.html': 'Map', 'gear.html': 'Master Gear', 'questionnaire.html': 'Questionnaire', 'training.html': 'Training', 'schedule.html': 'Schedule' }[active] || 'Admin';
     h.innerHTML = `
       <div class="adm-top"><a href="../index.html" class="adm-name">Resilience Systems · ${title}<small>Admin</small></a><div class="adm-slot" id="adm-slot"></div></div>
       <nav class="adm-nav adm-user" aria-label="Admin">${nav.map(([href, label]) => `<a href="${href}" ${active === href ? 'aria-current="page"' : ''}>${label}</a>`).join('')}
@@ -187,5 +187,29 @@
   const STAGE_DATE = { 'Call': 'called_on', 'Assessment': 'assessed_on', 'Spec sent': 'spec_sent_on', 'Accepted': 'spec_accepted_on', 'Delivered': 'delivered_on', 'Trained': 'trained_on' };
   const stageOf = c => (c && STAGES.includes(c.stage) ? c.stage : 'Lead');
 
-  window.RS = { STAGES, STAGE_DATE, stageOf, geocode, fmtDate, TASK_KINDS, ADMIN_NAMES, completeTask, store, auth, ensureSeed, settings, money, esc, toast, header, live: LIVE, uid };
+  /* ---------- questionnaire ---------- */
+  // Answers to these keys are kept in their own columns; every other answer goes in a JSON field.
+  const MEMBER_COLS = ['relationship', 'birth_year', 'sex', 'height', 'weight', 'size_top', 'size_bottom', 'size_shoe', 'size_other', 'diet', 'mobility', 'notes'];
+  const CUSTOMER_COLS = ['address', 'home', 'vehicles', 'pets', 'emergency_contacts'];
+  async function questions(includeArchived) {
+    let rows = [];
+    try { rows = LIVE ? ((await sb.from('questions').select('*').range(0, 999)).data || []) : await local.list('questions'); } catch (e) {}
+    const D = window.RS_DEFAULT_QUESTIONS || [];
+    if (!rows.length && !LIVE && D.length) rows = await local.insertMany('questions', D.map(q => ({ ...q, archived: false })));
+    // live, but the questions table is empty or not created yet: fall back to the built-in list, read-only
+    if (!rows.length && D.length) rows = D.map(q => ({ ...q, archived: false, id: 'builtin-' + q.scope + '-' + q.key, builtin: true }));
+    rows.sort((a, b) => a.sort - b.sort);
+    return includeArchived ? rows : rows.filter(q => !q.archived);
+  }
+  // "Show only if": the controlling answer equals the value (several values separated by |; a multi-choice matches if any is ticked).
+  function qVisible(q, answers) {
+    if (!q.show_if_key) return true;
+    const want = String(q.show_if_value || '').split('|').map(x => x.trim().toLowerCase()).filter(Boolean);
+    const got = answers[q.show_if_key];
+    const have = (Array.isArray(got) ? got : [got]).map(x => String(x == null ? '' : x).trim().toLowerCase()).filter(Boolean);
+    return want.length ? have.some(x => want.includes(x)) : have.length > 0;
+  }
+  const answerText = v => (Array.isArray(v) ? v.join(', ') : (v == null ? '' : String(v)));
+
+  window.RS = { STAGES, STAGE_DATE, stageOf, questions, qVisible, answerText, MEMBER_COLS, CUSTOMER_COLS, geocode, fmtDate, TASK_KINDS, ADMIN_NAMES, completeTask, store, auth, ensureSeed, settings, money, esc, toast, header, live: LIVE, uid };
 })();

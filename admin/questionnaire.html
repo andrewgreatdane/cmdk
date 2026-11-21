@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Questionnaire | Resilience Systems Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="admin.css">
+  <style>
+    main { max-width: 1040px; margin: 0 auto; padding: 24px 24px 80px; }
+    .top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+    .intro { color: var(--ink-2); max-width: 70ch; margin: 0; }
+    .fixed { color: var(--ink-3); font-size: 13px; margin: 6px 0 0; max-width: 70ch; }
+    .warn { border: 1px solid #a3271b; color: #a3271b; padding: 10px 12px; font-size: 13px; margin: 16px 0 0; }
+    .grp { margin-top: 36px; }
+    .ql { list-style: none; margin: 0; padding: 0; }
+    .qi { display: grid; grid-template-columns: 20px 1fr auto; gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--rule-soft); background: #fff; }
+    .qi h3 { margin: 0; font-size: 15px; font-weight: 500; }
+    .qi p { margin: 2px 0 0; color: var(--ink-3); font-size: 12px; font-family: var(--mono); }
+    .qi .cond { color: var(--ink-2); }
+    .qi .side { display: flex; gap: 12px; align-items: baseline; white-space: nowrap; }
+    .qi .tag { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+    .sec { padding: 16px 0 4px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); border-bottom: 1px solid var(--rule-soft); }
+    .empty { padding: 20px 0; color: var(--ink-3); font-size: 13px; }
+    .help { font-size: 12px; color: var(--ink-3); }
+    @media (max-width: 640px) { main { padding: 16px 16px 60px; } .qi { grid-template-columns: 20px 1fr; } .qi .side { grid-column: 2; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="top">
+      <p class="intro">The questions every client answers on the private intake form. Changes here show on the form straight away.</p>
+      <a class="btn" href="../intake.html" target="_blank" rel="noopener">Open the form ↗</a>
+    </div>
+    <p class="fixed">Always asked and not editable here: full name, email, phone, and each person's name.</p>
+    <p class="warn" id="warn" hidden></p>
+
+    <section class="grp">
+      <h2 class="h2"><span>About the household</span><button type="button" class="adm-link" data-add="household">+ Add question</button></h2>
+      <ul class="ql" id="list-household"></ul>
+    </section>
+    <section class="grp">
+      <h2 class="h2"><span>About each person</span><button type="button" class="adm-link" data-add="person">+ Add question</button></h2>
+      <ul class="ql" id="list-person"></ul>
+      <p class="help" style="margin-top:8px">Asked once for every person the client adds.</p>
+    </section>
+  </main>
+
+  <dialog class="adm-dialog" id="dlg">
+    <form method="dialog" id="form">
+      <div class="dlg-head"><h2 id="dlg-t">Question</h2><button class="adm-link" value="cancel" formnovalidate>Close</button></div>
+      <div class="dlg-body">
+        <label class="field"><span class="lbl">Question</span><input name="label" required placeholder="e.g. Do you have a generator?"></label>
+        <label class="field"><span class="lbl">Hint shown in the answer box (optional)</span><input name="help"></label>
+        <div class="grid2">
+          <label class="field"><span class="lbl">Answer type</span>
+            <select name="kind"><option value="text">Short text</option><option value="longtext">Long text</option><option value="yesno">Yes / No</option><option value="choice">Pick one</option><option value="multi">Pick any</option></select>
+          </label>
+          <label class="field" id="sec-field"><span class="lbl">Section on the form</span><input name="section" list="sections" placeholder="e.g. Home &amp; logistics"><datalist id="sections"></datalist></label>
+        </div>
+        <label class="field" id="opt-field"><span class="lbl">Choices, one per line</span><textarea name="options"></textarea></label>
+        <div class="grid2">
+          <label class="field"><span class="lbl">Only show this if…</span><select name="show_if_key"><option value="">Always show</option></select></label>
+          <label class="field" id="val-field"><span class="lbl">…is answered</span><input name="show_if_value" placeholder="e.g. Yes"><span class="help">Several answers: separate with |</span></label>
+        </div>
+      </div>
+      <div class="dlg-foot"><button class="btn btn-danger" type="button" id="del">Remove question</button><span class="spacer"></span><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn btn-solid" value="save">Save</button></div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+  <script src="config.js"></script>
+  <script src="seed.js"></script>
+  <script src="questions-default.js"></script>
+  <script src="core.js"></script>
+  <script>
+  (async function () {
+    const { store, esc, toast } = RS;
+    const user = await RS.auth.guard();
+    RS.header('questionnaire.html', user);
+    const $ = s => document.querySelector(s);
+    const KINDS = { text: 'Short text', longtext: 'Long text', yesno: 'Yes / No', choice: 'Pick one', multi: 'Pick any' };
+    let all = await RS.questions(true);
+    const readOnly = all.some(q => q.builtin);
+    if (readOnly) { const w = $('#warn'); w.hidden = false; w.textContent = 'The questionnaire has not been set up in the database yet, so this is the built-in list and it cannot be edited. Once the database change is applied, reload this page.'; }
+    const live = scope => all.filter(q => !q.archived && q.scope === scope).sort((a, b) => a.sort - b.sort);
+    const byKey = (scope, key) => all.find(q => !q.archived && q.key === key && (q.scope === scope || q.scope === 'household'));
+
+    function row(q, scope) {
+      const dep = q.show_if_key ? byKey(scope, q.show_if_key) : null;
+      const opts = (q.kind === 'choice' || q.kind === 'multi') && (q.options || []).length ? ` · ${q.options.length} choices` : '';
+      return `<li class="qi" data-id="${q.id}"><span class="drag" title="Drag to reorder" aria-hidden="true">⋮⋮</span>
+        <div><h3>${esc(q.label)}</h3><p>${KINDS[q.kind] || q.kind}${opts}${q.show_if_key ? ` · <span class="cond">only if “${esc(dep ? dep.label : q.show_if_key)}” is ${esc((q.show_if_value || 'answered').split('|').map(x => x.trim()).join(' or '))}</span>` : ''}</p></div>
+        <div class="side">${readOnly ? '' : '<button class="adm-link" type="button" data-edit>Edit</button>'}</div></li>`;
+    }
+    function render() {
+      for (const scope of ['household', 'person']) {
+        const host = $('#list-' + scope), qs = live(scope);
+        if (scope === 'household') {
+          // grouped the way the form groups them: sections in order of their first question
+          const secs = []; qs.forEach(q => { const s = q.section || 'Other'; if (!secs.includes(s)) secs.push(s); });
+          host.innerHTML = qs.length ? secs.map(s => `<li class="sec" data-sec>${esc(s)}</li>` + qs.filter(q => (q.section || 'Other') === s).map(q => row(q, scope)).join('')).join('') : '<li class="empty">No questions yet.</li>';
+        } else host.innerHTML = qs.length ? qs.map(q => row(q, scope)).join('') : '<li class="empty">No questions yet.</li>';
+        if (!readOnly) Sortable.create(host, { handle: '.drag', animation: 150, draggable: '.qi', onEnd: () => saveOrder(scope) });
+      }
+      $('#sections').innerHTML = [...new Set(live('household').map(q => q.section).filter(Boolean))].map(s => `<option value="${esc(s)}">`).join('');
+    }
+    // Order is one running number per list; a household question dropped under a section heading joins that section.
+    async function saveOrder(scope) {
+      const host = $('#list-' + scope); let sec = null, i = 0;
+      const base = scope === 'person' ? 1000 : 0;
+      for (const li of host.children) {
+        if (li.hasAttribute('data-sec')) { sec = li.textContent; continue; }
+        const q = all.find(x => x.id === li.dataset.id); if (!q) continue;
+        const patch = {}; if (q.sort !== base + i) patch.sort = base + i;
+        if (scope === 'household' && sec && (q.section || 'Other') !== sec) patch.section = sec;
+        if (Object.keys(patch).length) Object.assign(q, await store.update('questions', q.id, patch));
+        i++;
+      }
+      render();
+    }
+
+    const dlg = $('#dlg'), form = $('#form'); let editing = null, addScope = 'household';
+    const slug = s => (s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').replace(/^[0-9]/, 'q$&').slice(0, 40) || 'question');
+    function sync() {
+      const k = form.elements.kind.value;
+      $('#opt-field').hidden = !(k === 'choice' || k === 'multi');
+      $('#val-field').hidden = !form.elements.show_if_key.value;
+    }
+    form.elements.kind.addEventListener('change', sync); form.elements.show_if_key.addEventListener('change', sync);
+    function open(q, scope) {
+      editing = q || null; addScope = q ? q.scope : scope; form.reset();
+      $('#dlg-t').textContent = (q ? 'Edit question' : 'New question') + (addScope === 'person' ? ' · each person' : ' · household');
+      $('#del').hidden = !q; $('#sec-field').hidden = addScope === 'person';
+      // a question can depend on any other question in its own list; per-person ones can also depend on a household answer
+      const cands = all.filter(x => !x.archived && (!q || x.id !== q.id) && (x.scope === addScope || (addScope === 'person' && x.scope === 'household')) && !(addScope === 'person' && x.scope === 'household' && live('person').some(p => p.key === x.key)));
+      form.elements.show_if_key.innerHTML = '<option value="">Always show</option>' + cands.map(x => `<option value="${esc(x.key)}">${esc(x.label)}${x.scope !== addScope ? ' (household)' : ''}</option>`).join('');
+      if (q) {
+        form.elements.label.value = q.label; form.elements.help.value = q.help || ''; form.elements.kind.value = q.kind;
+        form.elements.section.value = q.section || ''; form.elements.options.value = (q.options || []).join('\n');
+        form.elements.show_if_key.value = q.show_if_key || ''; form.elements.show_if_value.value = q.show_if_value || '';
+      } else { const last = live('household').slice(-1)[0]; form.elements.section.value = (last && last.section) || ''; }
+      sync(); dlg.showModal(); form.elements.label.focus();
+    }
+    document.addEventListener('click', e => {
+      if (readOnly) return;
+      const a = e.target.closest('[data-add]'); if (a) return open(null, a.dataset.add);
+      const b = e.target.closest('[data-edit]'); if (b) open(all.find(q => q.id === b.closest('[data-id]').dataset.id));
+    });
+    if (readOnly) document.querySelectorAll('[data-add]').forEach(b => (b.hidden = true));
+    dlg.addEventListener('close', async () => {
+      if (dlg.returnValue !== 'save') return;
+      const f = form.elements, kind = f.kind.value;
+      const data = {
+        label: f.label.value.trim(), help: f.help.value.trim() || null, kind,
+        section: addScope === 'household' ? (f.section.value.trim() || 'Other') : null,
+        options: (kind === 'choice' || kind === 'multi') ? f.options.value.split('\n').map(x => x.trim()).filter(Boolean) : [],
+        show_if_key: f.show_if_key.value || null, show_if_value: f.show_if_key.value ? (f.show_if_value.value.trim() || null) : null,
+      };
+      if (!data.label) return;
+      if ((kind === 'choice' || kind === 'multi') && !data.options.length) { toast('Add at least one choice', true); return open(editing, addScope); }
+      if (editing) { Object.assign(editing, await store.update('questions', editing.id, data)); toast('Saved'); }
+      else {
+        let key = slug(data.label), n = 2; const taken = k => all.some(q => q.scope === addScope && q.key === k) || RS.MEMBER_COLS.concat(RS.CUSTOMER_COLS, ['name', 'email', 'phone', 'answers', 'id']).includes(k);
+        const stem = key; while (taken(key)) key = stem.slice(0, 36) + '_' + n++;
+        const peers = live(addScope);
+        all.push(await store.insert('questions', { ...data, scope: addScope, key, sort: (peers.length ? Math.max(...peers.map(q => q.sort)) : (addScope === 'person' ? 1000 : 0)) + 1, archived: false }));
+        toast('Question added');
+      }
+      render();
+    });
+    $('#del').addEventListener('click', async () => {
+      if (!editing) return;
+      const deps = all.filter(q => !q.archived && q.show_if_key === editing.key && (q.scope === editing.scope || editing.scope === 'household'));
+      if (!confirm(`Remove “${editing.label}” from the form?${deps.length ? ` ${deps.length} question${deps.length === 1 ? ' depends' : 's depend'} on it and will then always show.` : ''} Answers already given are kept.`)) return;
+      Object.assign(editing, await store.update('questions', editing.id, { archived: true }));
+      for (const d of deps) Object.assign(d, await store.update('questions', d.id, { show_if_key: null, show_if_value: null }));
+      dlg.close('cancel'); toast('Removed'); render();
+    });
+    render();
+  })();
+  </script>
+</body>
+</html>
